@@ -1,7 +1,7 @@
 {
-  "versionCode": 31,
-  "versionName": "0.5.8",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.5.8.apk",
-  "notes": "Vyska anteny/tyce se propisuje i do nahledu Z, SHP export je PointZ a ma Z atribut.",
+  "versionCode": 32,
+  "versionName": "0.5.9",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.5.9.apk",
+  "notes": "Aplikace pri startu sama zkontroluje aktualizace a upozorni, kdyz je dostupna nova verze.",
   "required": false
 }
