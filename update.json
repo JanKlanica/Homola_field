@@ -1,0 +1,7 @@
+{
+  "versionCode": 30,
+  "versionName": "0.5.7",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.5.7.apk",
+  "notes": "Homola Field pouziva verejny internetovy update kanal pres GitHub Pages.",
+  "required": false
+}
