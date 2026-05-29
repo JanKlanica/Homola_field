@@ -1,7 +1,7 @@
 {
-  "versionCode": 37,
-  "versionName": "0.6.4",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.4.apk",
-  "notes": "Pridani fotky k aktualnimu zaznamu a propsani odkazu do projektu/exportu.",
+  "versionCode": 38,
+  "versionName": "0.6.5",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.5.apk",
+  "notes": "Foceni fotky primo ze zaznamu a pribaleni JPG fotek do SHP/ZIP exportu.",
   "required": false
 }
