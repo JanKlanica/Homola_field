@@ -1,7 +1,7 @@
 {
-  "versionCode": 38,
-  "versionName": "0.6.5",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.5.apk",
-  "notes": "Foceni fotky primo ze zaznamu a pribaleni JPG fotek do SHP/ZIP exportu.",
+  "versionCode": 39,
+  "versionName": "0.6.6",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.6.apk",
+  "notes": "Opravy exportu SHP/DXF/CSV/GeoJSON, S-JTSK importu, vrstev mapy a vytyceni.",
   "required": false
 }
