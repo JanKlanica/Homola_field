@@ -1,7 +1,7 @@
 {
-  "versionCode": 35,
-  "versionName": "0.6.2",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.2.apk",
-  "notes": "Oddelena zalozka Zaznam od Mapy: mapa je pro praci nad podkladem, zaznam je pro detail a nastaveni mereni.",
+  "versionCode": 36,
+  "versionName": "0.6.3",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.3.apk",
+  "notes": "Opravene centrovani mapy na RTK polohu a prepinani podkladu OSM, Teren a Katastr.",
   "required": false
 }
