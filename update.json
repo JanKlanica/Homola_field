@@ -1,7 +1,7 @@
 {
-  "versionCode": 39,
-  "versionName": "0.6.6",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.6.apk",
-  "notes": "Opravy exportu SHP/DXF/CSV/GeoJSON, S-JTSK importu, vrstev mapy a vytyceni.",
+  "versionCode": 40,
+  "versionName": "0.6.7",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.7.apk",
+  "notes": "Prehlednejsi zalozka Vice pro stavbu: RTK karta, zakazka, data, servis a rychly import/export.",
   "required": false
 }
