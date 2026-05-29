@@ -1,7 +1,7 @@
 {
-  "versionCode": 36,
-  "versionName": "0.6.3",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.3.apk",
-  "notes": "Opravene centrovani mapy na RTK polohu a prepinani podkladu OSM, Teren a Katastr.",
+  "versionCode": 37,
+  "versionName": "0.6.4",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.4.apk",
+  "notes": "Pridani fotky k aktualnimu zaznamu a propsani odkazu do projektu/exportu.",
   "required": false
 }
