@@ -1,7 +1,7 @@
 {
-  "versionCode": 32,
-  "versionName": "0.5.9",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.5.9.apk",
-  "notes": "Aplikace pri startu sama zkontroluje aktualizace a upozorni, kdyz je dostupna nova verze.",
+  "versionCode": 33,
+  "versionName": "0.6.0",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.0.apk",
+  "notes": "Kompaktni telefonni rozhrani: mensi mapove panely, navigace, projekty, vytyceni, vrstvy, kody a export.",
   "required": false
 }
