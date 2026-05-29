@@ -1,7 +1,7 @@
 {
-  "versionCode": 34,
-  "versionName": "0.6.1",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.1.apk",
-  "notes": "Opraveno upozorneni na aktualizaci pri startu: nova verze se zobrazi jako dialog s tlacitkem Instalovat.",
+  "versionCode": 35,
+  "versionName": "0.6.2",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.2.apk",
+  "notes": "Oddelena zalozka Zaznam od Mapy: mapa je pro praci nad podkladem, zaznam je pro detail a nastaveni mereni.",
   "required": false
 }
