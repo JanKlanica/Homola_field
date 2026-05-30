@@ -1,7 +1,7 @@
 {
-  "versionCode": 40,
-  "versionName": "0.6.7",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.7.apk",
-  "notes": "Prehlednejsi zalozka Vice pro stavbu: RTK karta, zakazka, data, servis a rychly import/export.",
+  "versionCode": 41,
+  "versionName": "0.6.8",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.6.8.apk",
+  "notes": "Kvalita mereni pred ulozenim, detail bodu, kos, zaloha projektu, PDF protokol, RTK diagnostika a stavebni rezim.",
   "required": false
 }
