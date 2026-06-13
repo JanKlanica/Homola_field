@@ -1,7 +1,7 @@
 {
-  "versionCode": 43,
-  "versionName": "0.7.0",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.0.apk",
-  "notes": "Seznam a editace bodu, vyber bodu pro vytyceni ze seznamu, zvyrazneny aktivni cil a oprava kresleni bodu vytyceni.",
+  "versionCode": 44,
+  "versionName": "0.7.1",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.1.apk",
+  "notes": "Vytyceni: mapa jde posouvat a priblizovat prsty, tap na bod vybere aktivni cil.",
   "required": false
 }
