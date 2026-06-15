@@ -1,7 +1,7 @@
 {
-  "versionCode": 45,
-  "versionName": "0.7.2",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.2.apk",
-  "notes": "Vytyceni ma nativni plynulou mapu, katastralni podklad a vyber ciloveho bodu tapnutim.",
+  "versionCode": 46,
+  "versionName": "0.7.3",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.3.apk",
+  "notes": "Vytyceni spousti centimetrove dopresneni uz pod 2 m od ciloveho bodu.",
   "required": false
 }
