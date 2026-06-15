@@ -1,7 +1,7 @@
 {
-  "versionCode": 46,
-  "versionName": "0.7.3",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.3.apk",
-  "notes": "Vytyceni spousti centimetrove dopresneni uz pod 2 m od ciloveho bodu.",
+  "versionCode": 47,
+  "versionName": "0.7.4",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.4.apk",
+  "notes": "Liquid glass redesign: svetle sklenene panely, jemne stiny, cistsi navigace a Homola brand akcenty.",
   "required": false
 }
