@@ -1,7 +1,7 @@
 {
-  "versionCode": 47,
-  "versionName": "0.7.4",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.4.apk",
-  "notes": "Liquid glass redesign: svetle sklenene panely, jemne stiny, cistsi navigace a Homola brand akcenty.",
+  "versionCode": 48,
+  "versionName": "0.7.5",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.5.apk",
+  "notes": "Spodni navigace ma liquid glass kapsli, ktera plynule prejizdi pod aktivni zalozku.",
   "required": false
 }
