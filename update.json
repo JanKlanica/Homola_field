@@ -1,7 +1,7 @@
 {
-  "versionCode": 48,
-  "versionName": "0.7.5",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.5.apk",
-  "notes": "Spodni navigace ma liquid glass kapsli, ktera plynule prejizdi pod aktivni zalozku.",
+  "versionCode": 49,
+  "versionName": "0.7.6",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.6.apk",
+  "notes": "Stavebni rezim ted pridava rychle stavebni akce pro mereni, vytyceni, mapu, export a protokol.",
   "required": false
 }
