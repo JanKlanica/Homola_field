@@ -1,7 +1,7 @@
 {
-  "versionCode": 49,
-  "versionName": "0.7.6",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.6.apk",
-  "notes": "Stavebni rezim ted pridava rychle stavebni akce pro mereni, vytyceni, mapu, export a protokol.",
+  "versionCode": 50,
+  "versionName": "0.7.7",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.7.apk",
+  "notes": "Presna S-JTSK transformace pres CUZK grid, velky terc pri vytyceni pod 2 m a zivejsi RTK presnost/satelity.",
   "required": false
 }
