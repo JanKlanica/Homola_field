@@ -1,7 +1,7 @@
 {
-  "versionCode": 52,
-  "versionName": "0.7.9",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.9.apk",
-  "notes": "Cloud se nastavuje automaticky z field.pipetrack.cz, uzivatel zadava jen e-mail a heslo.",
+  "versionCode": 53,
+  "versionName": "0.7.10",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.10.apk",
+  "notes": "Pridan automaticky sync vsech projektu po prihlaseni a tlacitko Sync vse.",
   "required": false
 }
