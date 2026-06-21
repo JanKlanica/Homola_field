@@ -22,6 +22,13 @@ export function looksProjected(x: number, y: number): boolean {
 }
 
 export function projectWgsToSjtskGrid(point: GeoPoint): ProjectedPoint {
+  if (Number.isFinite(point.sjtskX) && Number.isFinite(point.sjtskY)) {
+    return {
+      x: point.sjtskX as number,
+      y: point.sjtskY as number,
+      z: point.altitude ?? 0
+    };
+  }
   const [x, y] = proj4(WGS84, SJTSK_APPROX, [point.longitude, point.latitude]);
   const correction = correctionAt(x, y);
   return {
@@ -56,5 +63,7 @@ export function importCoordinate(x: number, y: number, z = 0): GeoPoint {
   if (looksProjected(x, y)) {
     return unprojectSjtskGrid({ x, y, z });
   }
-  return { longitude: x, latitude: y, altitude: z };
+  const point = { longitude: x, latitude: y, altitude: z };
+  const projected = projectWgsToSjtskGrid(point);
+  return { ...point, sjtskX: projected.x, sjtskY: projected.y };
 }

@@ -18,12 +18,13 @@ import {
   ShieldCheck,
   Trash2
 } from "lucide-react";
-import type { GeoPoint, LayerFeature, LayerRole, ProjectLayer, StakeoutTarget, SurveyProject, UserSession } from "./types";
+import type { GeoPoint, LayerFeature, LayerRole, MapProvider, ProjectLayer, StakeoutTarget, SurveyProject, UserSession } from "./types";
 import { emptyProject } from "./types";
 import { loadCloudConfig } from "./cloudConfig";
 import { createProjectStore, type ProjectStore } from "./storage";
 import { importFile } from "./importers";
 import { downloadBlob, projectCsv, projectDxf, projectGeoJson, projectJson } from "./exporters";
+import { projectWgsToSjtskGrid, unprojectSjtskGrid } from "./geo/projection";
 
 const ROLE_LABELS: Record<LayerRole, string> = {
   podklad: "Podklad",
@@ -32,6 +33,14 @@ const ROLE_LABELS: Record<LayerRole, string> = {
   hranice: "Hranice",
   site: "Sítě"
 };
+
+const MAP_PROVIDER_LABELS: Record<MapProvider, string> = {
+  Light: "OSM",
+  Ortho: "Ortofoto",
+  Cadastre: "Katastr"
+};
+
+const MAP_PROVIDERS: MapProvider[] = ["Light", "Ortho", "Cadastre"];
 
 const pointIcon = new L.DivIcon({
   className: "hf-marker",
@@ -79,7 +88,7 @@ export function App() {
 
   async function saveProject(project: SurveyProject, message = "Uloženo") {
     if (!store) return;
-    const saved = await store.saveProject(project);
+    const saved = await store.saveProject(normalizeProjectJtsk(project));
     setProjects((current) => [saved, ...current.filter((item) => item.id !== saved.id)].sort((a, b) => b.updatedAt - a.updatedAt));
     setSelectedId(saved.id);
     setNotice(message);
@@ -278,8 +287,8 @@ function ProjectCreator({ onCreate }: { onCreate: (name: string, description: st
 interface TargetDraft {
   name: string;
   code: string;
-  latitude: string;
-  longitude: string;
+  sjtskX: string;
+  sjtskY: string;
   altitude: string;
   note: string;
 }
@@ -346,35 +355,82 @@ function ProjectWorkspace({
     }, "Vrstva odstraněna");
   }
 
+  async function removeTarget(targetId: string) {
+    const target = project.targets.find((item) => item.id === targetId);
+    await saveProject(
+      {
+        ...project,
+        targets: project.targets.filter((item) => item.id !== targetId)
+      },
+      target ? `Cil ${target.name} odstranen` : "Cil odstranen"
+    );
+  }
+
+  async function removeMeasuredPoint(pointId: string) {
+    const point = project.points.find((item) => item.id === pointId);
+    await saveProject(
+      {
+        ...project,
+        points: project.points.filter((item) => item.id !== pointId),
+        layers: project.layers.map((layer) => ({
+          ...layer,
+          features: layer.features.filter((feature) => feature.properties.record_id !== pointId && feature.properties.RECORD_ID !== pointId)
+        }))
+      },
+      point ? `Bod ${point.name} odstranen` : "Bod odstranen"
+    );
+  }
+
+  async function removeLayerFeature(layerId: string, featureId: string) {
+    const layer = project.layers.find((item) => item.id === layerId);
+    await saveProject(
+      {
+        ...project,
+        layers: project.layers.map((item) =>
+          item.id === layerId
+            ? { ...item, features: item.features.filter((feature) => feature.id !== featureId) }
+            : item
+        )
+      },
+      layer ? `Prvek ve vrstve ${layer.name} odstranen` : "Prvek vrstvy odstranen"
+    );
+  }
+
+  async function setMapProvider(provider: MapProvider) {
+    await saveProject({ ...project, mapProvider: provider }, `Mapa: ${MAP_PROVIDER_LABELS[provider]}`);
+  }
+
   function handleMapPick(point: GeoPoint) {
+    const projected = projectWgsToSjtskGrid(point);
     setTargetDraft((current) => ({
       ...current,
-      latitude: point.latitude.toFixed(8),
-      longitude: point.longitude.toFixed(8),
-      altitude: (point.altitude ?? 0).toFixed(3),
+      sjtskX: fixed(projected.x),
+      sjtskY: fixed(projected.y),
+      altitude: fixed(projected.z ?? 0),
       note: current.note || "klik z mapy"
     }));
   }
 
   async function addStakeoutTarget(event?: FormEvent) {
     event?.preventDefault();
-    const latitude = Number(targetDraft.latitude.replace(",", "."));
-    const longitude = Number(targetDraft.longitude.replace(",", "."));
+    const sjtskX = Number(targetDraft.sjtskX.replace(",", "."));
+    const sjtskY = Number(targetDraft.sjtskY.replace(",", "."));
     const altitude = Number(targetDraft.altitude.replace(",", "."));
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    if (!Number.isFinite(sjtskX) || !Number.isFinite(sjtskY)) {
       setUploadMessage("Doplň platnou šířku a délku bodu.");
       return;
     }
+    const position = unprojectSjtskGrid({
+      x: sjtskX,
+      y: sjtskY,
+      z: Number.isFinite(altitude) ? altitude : 0
+    });
     const target: StakeoutTarget = {
       id: crypto.randomUUID(),
       name: targetDraft.name.trim() || nextTargetName(project),
       code: targetDraft.code.trim() || "BOD",
       note: targetDraft.note.trim(),
-      position: {
-        latitude,
-        longitude,
-        altitude: Number.isFinite(altitude) ? altitude : 0
-      }
+      position
     };
     const nextProject = {
       ...project,
@@ -420,9 +476,22 @@ function ProjectWorkspace({
               <strong>Mapa projektu</strong>
               <span>{project.layers.filter((layer) => layer.visible).length} aktivních vrstev · {allProjectPoints(project).length} bodů v náhledu</span>
             </div>
-            <button className={pickTargetFromMap ? "map-action active" : "map-action"} onClick={() => setPickTargetFromMap((value) => !value)}>
-              <Crosshair size={16} /> {pickTargetFromMap ? "Klikni do mapy" : "Bod z mapy"}
-            </button>
+            <div className="map-toolbar-actions">
+              <div className="map-provider-switch">
+                {MAP_PROVIDERS.map((provider) => (
+                  <button
+                    key={provider}
+                    className={(project.mapProvider ?? "Light") === provider ? "selected" : ""}
+                    onClick={() => setMapProvider(provider)}
+                  >
+                    {MAP_PROVIDER_LABELS[provider]}
+                  </button>
+                ))}
+              </div>
+              <button className={pickTargetFromMap ? "map-action active" : "map-action"} onClick={() => setPickTargetFromMap((value) => !value)}>
+                <Crosshair size={16} /> {pickTargetFromMap ? "Klikni do mapy" : "Bod z mapy"}
+              </button>
+            </div>
           </div>
           <ProjectMap project={project} pickTargetFromMap={pickTargetFromMap} draftPoint={draftPoint(targetDraft)} onPickPoint={handleMapPick} />
         </div>
@@ -454,12 +523,12 @@ function ProjectWorkspace({
               </div>
               <div className="form-pair">
                 <label>
-                  Lat
-                  <input inputMode="decimal" value={targetDraft.latitude} onChange={(event) => setTargetDraft({ ...targetDraft, latitude: event.currentTarget.value })} />
+                  JTSK X
+                  <input inputMode="decimal" value={targetDraft.sjtskX} onChange={(event) => setTargetDraft({ ...targetDraft, sjtskX: event.currentTarget.value })} />
                 </label>
                 <label>
-                  Lon
-                  <input inputMode="decimal" value={targetDraft.longitude} onChange={(event) => setTargetDraft({ ...targetDraft, longitude: event.currentTarget.value })} />
+                  JTSK Y
+                  <input inputMode="decimal" value={targetDraft.sjtskY} onChange={(event) => setTargetDraft({ ...targetDraft, sjtskY: event.currentTarget.value })} />
                 </label>
               </div>
               <div className="form-pair narrow">
@@ -555,6 +624,7 @@ function ProjectWorkspace({
             detail: target.note || "připraveno z webu",
             point: target.position
           }))}
+          onDelete={removeTarget}
         />
         <DataTable
           title="Naměřené body"
@@ -565,8 +635,9 @@ function ProjectWorkspace({
             detail: `${point.accuracyCm.toFixed(1)} cm · ${point.samples}x`,
             point: point.position
           }))}
+          onDelete={removeMeasuredPoint}
         />
-        <LayerDataTable project={project} />
+        <LayerDataTable project={project} onRemoveFeature={removeLayerFeature} />
       </section>
     </main>
   );
@@ -590,7 +661,7 @@ function ProjectMap({
 
   return (
     <MapContainer center={center} zoom={points.length ? 18 : 7} className={pickTargetFromMap ? "project-map picking" : "project-map"} scrollWheelZoom>
-      <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <BaseMap provider={project.mapProvider ?? "Light"} />
       <MapFit points={points} />
       <MapClickCapture enabled={pickTargetFromMap} onPick={onPickPoint} />
       {project.layers.filter((layer) => layer.visible).map((layer) =>
@@ -635,6 +706,25 @@ function MapClickCapture({ enabled, onPick }: { enabled: boolean; onPick: (point
     }
   });
   return null;
+}
+
+function BaseMap({ provider }: { provider: MapProvider }) {
+  if (provider === "Ortho") {
+    return (
+      <>
+        <TileLayer attribution="&copy; CUZK" url="https://ags.cuzk.cz/arcgis1/rest/services/ORTOFOTO_WM/MapServer/tile/{z}/{y}/{x}" />
+        <TileLayer className="cadastre-overlay" attribution="&copy; CUZK" url="https://services.cuzk.cz/wmts/local-km-wmts-google/rest/WMTS/Yellow/KN/{z}/{y}/{x}" opacity={0.72} />
+      </>
+    );
+  }
+  return (
+    <>
+      <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      {provider === "Cadastre" && (
+        <TileLayer className="cadastre-overlay" attribution="&copy; CUZK" url="https://services.cuzk.cz/wmts/local-km-wmts-google/rest/WMTS/default/KN/{z}/{y}/{x}" opacity={0.92} />
+      )}
+    </>
+  );
 }
 
 function MapFit({ points }: { points: GeoPoint[] }) {
@@ -701,10 +791,12 @@ function LayerRow({
 
 function DataTable({
   title,
-  rows
+  rows,
+  onDelete
 }: {
   title: string;
   rows: Array<{ id: string; name: string; code: string; detail: string; point: GeoPoint }>;
+  onDelete?: (id: string) => void;
 }) {
   return (
     <section className="panel-card">
@@ -722,7 +814,8 @@ function DataTable({
               <th>Název</th>
               <th>Kód</th>
               <th>Detail</th>
-              <th>Lat/Lon</th>
+              <th>JTSK X/Y/Z</th>
+              {onDelete && <th />}
             </tr>
           </thead>
           <tbody>
@@ -731,7 +824,14 @@ function DataTable({
                 <td>{row.name}</td>
                 <td>{row.code}</td>
                 <td>{row.detail}</td>
-                <td>{row.point.latitude.toFixed(7)}, {row.point.longitude.toFixed(7)}</td>
+                <td>{formatJtsk(row.point)}</td>
+                {onDelete && (
+                  <td className="action-cell">
+                    <button className="icon-button" onClick={() => onDelete(row.id)} title="Smazat">
+                      <Trash2 size={15} />
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
             {rows.length === 0 && (
@@ -746,7 +846,21 @@ function DataTable({
   );
 }
 
-function LayerDataTable({ project }: { project: SurveyProject }) {
+function LayerDataTable({
+  project,
+  onRemoveFeature
+}: {
+  project: SurveyProject;
+  onRemoveFeature: (layerId: string, featureId: string) => void;
+}) {
+  const rows = project.layers.flatMap((layer) =>
+    layer.features.map((feature, index) => ({
+      layer,
+      feature,
+      index,
+      point: feature.points[0]
+    }))
+  );
   return (
     <section className="panel-card layer-table-card">
       <div className="panel-title">
@@ -769,6 +883,22 @@ function LayerDataTable({ project }: { project: SurveyProject }) {
         ))}
         {project.layers.length === 0 && <p className="muted">Zatím žádné vrstvy v projektu.</p>}
       </div>
+      {rows.length > 0 && (
+        <div className="layer-feature-list">
+          {rows.map(({ layer, feature, index, point }) => (
+            <div key={`${layer.id}-${feature.id}`} className="layer-feature-row">
+              <span className="layer-dot" style={{ backgroundColor: layer.color }} />
+              <div>
+                <strong>{feature.properties.name || `${layer.name}-${index + 1}`}</strong>
+                <span>{layer.name} - {feature.geometry} - {feature.points.length} bodu - {point ? formatJtsk(point) : "bez souradnic"}</span>
+              </div>
+              <button className="icon-button" onClick={() => onRemoveFeature(layer.id, feature.id)} title="Smazat prvek">
+                <Trash2 size={15} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -818,12 +948,34 @@ function allProjectPoints(project: SurveyProject): GeoPoint[] {
   ].filter((point) => Number.isFinite(point.latitude) && Number.isFinite(point.longitude));
 }
 
+function normalizeProjectJtsk(project: SurveyProject): SurveyProject {
+  return {
+    ...project,
+    coordinateSystem: "EPSG:5514",
+    points: project.points.map((point) => ({ ...point, position: withJtsk(point.position) })),
+    targets: project.targets.map((target) => ({ ...target, position: withJtsk(target.position) })),
+    layers: project.layers.map((layer) => ({
+      ...layer,
+      features: layer.features.map((feature) => ({
+        ...feature,
+        points: feature.points.map(withJtsk)
+      }))
+    }))
+  };
+}
+
+function withJtsk(point: GeoPoint): GeoPoint {
+  if (Number.isFinite(point.sjtskX) && Number.isFinite(point.sjtskY)) return point;
+  const projected = projectWgsToSjtskGrid(point);
+  return { ...point, sjtskX: projected.x, sjtskY: projected.y };
+}
+
 function initialTargetDraft(project: SurveyProject): TargetDraft {
   return {
     name: nextTargetName(project),
     code: project.codes[0]?.code || "BOD",
-    latitude: "",
-    longitude: "",
+    sjtskX: "",
+    sjtskY: "",
     altitude: "0.000",
     note: "připraveno na webu"
   };
@@ -834,19 +986,28 @@ function nextTargetName(project: SurveyProject): string {
 }
 
 function draftPoint(draft: TargetDraft): GeoPoint | null {
-  const latitude = Number(draft.latitude.replace(",", "."));
-  const longitude = Number(draft.longitude.replace(",", "."));
+  const sjtskX = Number(draft.sjtskX.replace(",", "."));
+  const sjtskY = Number(draft.sjtskY.replace(",", "."));
   const altitude = Number(draft.altitude.replace(",", "."));
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-  return {
-    latitude,
-    longitude,
-    altitude: Number.isFinite(altitude) ? altitude : 0
-  };
+  if (!Number.isFinite(sjtskX) || !Number.isFinite(sjtskY)) return null;
+  return unprojectSjtskGrid({
+    x: sjtskX,
+    y: sjtskY,
+    z: Number.isFinite(altitude) ? altitude : 0
+  });
 }
 
 function countLayerPoints(layer: ProjectLayer): number {
   return layer.features.reduce((sum, feature) => sum + feature.points.length, 0);
+}
+
+function fixed(value: number): string {
+  return value.toFixed(3);
+}
+
+function formatJtsk(point: GeoPoint): string {
+  const projected = projectWgsToSjtskGrid(point);
+  return `${fixed(projected.x)} / ${fixed(projected.y)} / ${fixed(projected.z ?? 0)}`;
 }
 
 function slug(value: string): string {

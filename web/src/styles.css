@@ -367,6 +367,7 @@ label {
 }
 
 .map-toolbar > div,
+.map-toolbar-actions,
 .map-action {
   border: 1px solid rgba(255, 255, 255, 0.76);
   background: rgba(255, 255, 255, 0.82);
@@ -377,6 +378,40 @@ label {
 
 .map-toolbar > div {
   padding: 10px 13px;
+}
+
+.map-toolbar-actions {
+  pointer-events: auto;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.map-provider-switch {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 3px;
+  background: rgba(239, 240, 244, 0.88);
+  border-radius: 13px;
+  padding: 3px;
+}
+
+.map-provider-switch button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+}
+
+.map-provider-switch button.selected {
+  background: #fff;
+  color: var(--text);
+  box-shadow: 0 6px 14px rgba(17, 20, 29, 0.10);
 }
 
 .map-toolbar strong,
@@ -653,6 +688,43 @@ label {
   font-style: normal;
   font-size: 12px;
   font-weight: 850;
+}
+
+.layer-feature-list {
+  display: grid;
+  gap: 7px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.layer-feature-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.layer-feature-row strong,
+.layer-feature-row span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.layer-feature-row span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.action-cell {
+  text-align: right;
+  width: 46px;
 }
 
 table {

@@ -1,7 +1,7 @@
 {
-  "versionCode": 53,
-  "versionName": "0.7.10",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.10.apk",
-  "notes": "Pridan automaticky sync vsech projektu po prihlaseni a tlacitko Sync vse.",
+  "versionCode": 54,
+  "versionName": "0.7.11",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.11.apk",
+  "notes": "JTSK X/Y se ukladaji do projektu, vytyceni pocita rozdily v EPSG:5514 CUZK Grid a web umi katastralni podklad, JTSK zadani a mazani bodu.",
   "required": false
 }

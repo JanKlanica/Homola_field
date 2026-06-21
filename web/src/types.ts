@@ -1,6 +1,7 @@
 export type RtkQuality = "Unknown" | "Single" | "Float" | "Fix";
 export type LayerGeometry = "Point" | "Polyline" | "Polygon";
 export type LayerRole = "podklad" | "vytyceni" | "mereni" | "hranice" | "site";
+export type MapProvider = "Light" | "Ortho" | "Cadastre";
 
 export interface GeoPoint {
   latitude: number;
@@ -63,6 +64,7 @@ export interface SurveyProject {
   name: string;
   description: string;
   coordinateSystem: "EPSG:5514";
+  mapProvider?: MapProvider;
   createdAt: number;
   updatedAt: number;
   codes: CodeDefinition[];
@@ -124,6 +126,7 @@ export const emptyProject = (name: string, description = ""): SurveyProject => (
   name,
   description,
   coordinateSystem: "EPSG:5514",
+  mapProvider: "Light",
   createdAt: Date.now(),
   updatedAt: Date.now(),
   codes: defaultCodes(),
