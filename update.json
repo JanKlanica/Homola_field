@@ -1,7 +1,7 @@
 {
-  "versionCode": 50,
-  "versionName": "0.7.7",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.7.apk",
-  "notes": "Presna S-JTSK transformace pres CUZK grid, velky terc pri vytyceni pod 2 m a zivejsi RTK presnost/satelity.",
+  "versionCode": 51,
+  "versionName": "0.7.8",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.8.apk",
+  "notes": "Pridan webovy cloud portal a Android cloud panel pro Supabase sync projektu.",
   "required": false
 }
