@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { CircleMarker, MapContainer, Marker, Polygon, Polyline, Popup, TileLayer, useMap } from "react-leaflet";
+import { CircleMarker, MapContainer, Marker, Polygon, Polyline, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import {
   ArrowDownToLine,
@@ -13,11 +13,12 @@ import {
   MapPinned,
   Plus,
   RefreshCcw,
+  Ruler,
   Search,
   ShieldCheck,
   Trash2
 } from "lucide-react";
-import type { GeoPoint, LayerFeature, LayerRole, ProjectLayer, SurveyProject, UserSession } from "./types";
+import type { GeoPoint, LayerFeature, LayerRole, ProjectLayer, StakeoutTarget, SurveyProject, UserSession } from "./types";
 import { emptyProject } from "./types";
 import { loadCloudConfig } from "./cloudConfig";
 import { createProjectStore, type ProjectStore } from "./storage";
@@ -274,6 +275,15 @@ function ProjectCreator({ onCreate }: { onCreate: (name: string, description: st
   );
 }
 
+interface TargetDraft {
+  name: string;
+  code: string;
+  latitude: string;
+  longitude: string;
+  altitude: string;
+  note: string;
+}
+
 function ProjectWorkspace({
   project,
   notice,
@@ -290,6 +300,13 @@ function ProjectWorkspace({
   const [role, setRole] = useState<LayerRole>("podklad");
   const [color, setColor] = useState("#e53935");
   const [uploadMessage, setUploadMessage] = useState("");
+  const [pickTargetFromMap, setPickTargetFromMap] = useState(false);
+  const [targetDraft, setTargetDraft] = useState<TargetDraft>(() => initialTargetDraft(project));
+
+  useEffect(() => {
+    setTargetDraft(initialTargetDraft(project));
+    setPickTargetFromMap(false);
+  }, [project.id]);
 
   async function handleImport(file: File | null) {
     if (!file) return;
@@ -329,6 +346,45 @@ function ProjectWorkspace({
     }, "Vrstva odstraněna");
   }
 
+  function handleMapPick(point: GeoPoint) {
+    setTargetDraft((current) => ({
+      ...current,
+      latitude: point.latitude.toFixed(8),
+      longitude: point.longitude.toFixed(8),
+      altitude: (point.altitude ?? 0).toFixed(3),
+      note: current.note || "klik z mapy"
+    }));
+  }
+
+  async function addStakeoutTarget(event?: FormEvent) {
+    event?.preventDefault();
+    const latitude = Number(targetDraft.latitude.replace(",", "."));
+    const longitude = Number(targetDraft.longitude.replace(",", "."));
+    const altitude = Number(targetDraft.altitude.replace(",", "."));
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      setUploadMessage("Doplň platnou šířku a délku bodu.");
+      return;
+    }
+    const target: StakeoutTarget = {
+      id: crypto.randomUUID(),
+      name: targetDraft.name.trim() || nextTargetName(project),
+      code: targetDraft.code.trim() || "BOD",
+      note: targetDraft.note.trim(),
+      position: {
+        latitude,
+        longitude,
+        altitude: Number.isFinite(altitude) ? altitude : 0
+      }
+    };
+    const nextProject = {
+      ...project,
+      targets: [...project.targets, target]
+    };
+    await saveProject(nextProject, `Cíl ${target.name} přidán`);
+    setTargetDraft(initialTargetDraft(nextProject));
+    setPickTargetFromMap(false);
+  }
+
   return (
     <main className="workspace">
       <header className="workspace-header">
@@ -359,10 +415,69 @@ function ProjectWorkspace({
 
       <section className="workspace-grid">
         <div className="map-card">
-          <ProjectMap project={project} />
+          <div className="map-toolbar">
+            <div>
+              <strong>Mapa projektu</strong>
+              <span>{project.layers.filter((layer) => layer.visible).length} aktivních vrstev · {allProjectPoints(project).length} bodů v náhledu</span>
+            </div>
+            <button className={pickTargetFromMap ? "map-action active" : "map-action"} onClick={() => setPickTargetFromMap((value) => !value)}>
+              <Crosshair size={16} /> {pickTargetFromMap ? "Klikni do mapy" : "Bod z mapy"}
+            </button>
+          </div>
+          <ProjectMap project={project} pickTargetFromMap={pickTargetFromMap} draftPoint={draftPoint(targetDraft)} onPickPoint={handleMapPick} />
         </div>
 
         <aside className="tool-panel">
+          <section className="panel-card measure-card">
+            <div className="panel-title">
+              <Ruler size={20} />
+              <div>
+                <strong>Přidat cíl vytyčení</strong>
+                <span>Ručně nebo klikem do mapy</span>
+              </div>
+            </div>
+            <form className="target-form" onSubmit={addStakeoutTarget}>
+              <div className="form-pair">
+                <label>
+                  Název
+                  <input value={targetDraft.name} onChange={(event) => setTargetDraft({ ...targetDraft, name: event.currentTarget.value })} />
+                </label>
+                <label>
+                  Kód
+                  <select value={targetDraft.code} onChange={(event) => setTargetDraft({ ...targetDraft, code: event.currentTarget.value })}>
+                    {project.codes.map((code) => (
+                      <option key={code.id} value={code.code}>{code.code}</option>
+                    ))}
+                    {project.codes.length === 0 && <option value="BOD">BOD</option>}
+                  </select>
+                </label>
+              </div>
+              <div className="form-pair">
+                <label>
+                  Lat
+                  <input inputMode="decimal" value={targetDraft.latitude} onChange={(event) => setTargetDraft({ ...targetDraft, latitude: event.currentTarget.value })} />
+                </label>
+                <label>
+                  Lon
+                  <input inputMode="decimal" value={targetDraft.longitude} onChange={(event) => setTargetDraft({ ...targetDraft, longitude: event.currentTarget.value })} />
+                </label>
+              </div>
+              <div className="form-pair narrow">
+                <label>
+                  Z
+                  <input inputMode="decimal" value={targetDraft.altitude} onChange={(event) => setTargetDraft({ ...targetDraft, altitude: event.currentTarget.value })} />
+                </label>
+                <label>
+                  Poznámka
+                  <input value={targetDraft.note} onChange={(event) => setTargetDraft({ ...targetDraft, note: event.currentTarget.value })} />
+                </label>
+              </div>
+              <button className="primary-button compact" type="submit">
+                <Plus size={16} /> Přidat do vytyčení
+              </button>
+            </form>
+          </section>
+
           <section className="panel-card">
             <div className="panel-title">
               <FileUp size={20} />
@@ -451,21 +566,33 @@ function ProjectWorkspace({
             point: point.position
           }))}
         />
+        <LayerDataTable project={project} />
       </section>
     </main>
   );
 }
 
-function ProjectMap({ project }: { project: SurveyProject }) {
+function ProjectMap({
+  project,
+  pickTargetFromMap,
+  draftPoint,
+  onPickPoint
+}: {
+  project: SurveyProject;
+  pickTargetFromMap: boolean;
+  draftPoint: GeoPoint | null;
+  onPickPoint: (point: GeoPoint) => void;
+}) {
   const points = allProjectPoints(project);
   const center: [number, number] = points.length
     ? [points.reduce((sum, point) => sum + point.latitude, 0) / points.length, points.reduce((sum, point) => sum + point.longitude, 0) / points.length]
     : [49.195, 16.6068];
 
   return (
-    <MapContainer center={center} zoom={points.length ? 18 : 7} className="project-map" scrollWheelZoom>
+    <MapContainer center={center} zoom={points.length ? 18 : 7} className={pickTargetFromMap ? "project-map picking" : "project-map"} scrollWheelZoom>
       <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <MapFit points={points} />
+      <MapClickCapture enabled={pickTargetFromMap} onPick={onPickPoint} />
       {project.layers.filter((layer) => layer.visible).map((layer) =>
         layer.features.map((feature) => <FeatureShape key={feature.id} feature={feature} color={layer.color} layerName={layer.name} />)
       )}
@@ -487,8 +614,27 @@ function ProjectMap({ project }: { project: SurveyProject }) {
           </Popup>
         </CircleMarker>
       ))}
+      {draftPoint && (
+        <CircleMarker center={[draftPoint.latitude, draftPoint.longitude]} radius={10} color="#20b45b" fillColor="#20b45b" fillOpacity={0.25} weight={4}>
+          <Popup>Nový cíl vytyčení</Popup>
+        </CircleMarker>
+      )}
     </MapContainer>
   );
+}
+
+function MapClickCapture({ enabled, onPick }: { enabled: boolean; onPick: (point: GeoPoint) => void }) {
+  useMapEvents({
+    click(event) {
+      if (!enabled) return;
+      onPick({
+        latitude: event.latlng.lat,
+        longitude: event.latlng.lng,
+        altitude: 0
+      });
+    }
+  });
+  return null;
 }
 
 function MapFit({ points }: { points: GeoPoint[] }) {
@@ -600,6 +746,33 @@ function DataTable({
   );
 }
 
+function LayerDataTable({ project }: { project: SurveyProject }) {
+  return (
+    <section className="panel-card layer-table-card">
+      <div className="panel-title">
+        <Layers size={20} />
+        <div>
+          <strong>Vrstvy projektu</strong>
+          <span>{project.layers.length} vrstev · {project.layers.reduce((sum, layer) => sum + layer.features.length, 0)} prvků</span>
+        </div>
+      </div>
+      <div className="layer-summary-list">
+        {project.layers.map((layer) => (
+          <div key={layer.id} className="layer-summary-row">
+            <span className="layer-dot" style={{ backgroundColor: layer.color }} />
+            <div>
+              <strong>{layer.name}</strong>
+              <span>{ROLE_LABELS[layer.role]} · {layer.sourceType} · {layer.features.length} prvků · {countLayerPoints(layer)} bodů</span>
+            </div>
+            <em>{layer.visible ? "viditelná" : "skrytá"}</em>
+          </div>
+        ))}
+        {project.layers.length === 0 && <p className="muted">Zatím žádné vrstvy v projektu.</p>}
+      </div>
+    </section>
+  );
+}
+
 function StatCard({ icon, label, value }: { icon: JSX.Element; label: string; value: number }) {
   return (
     <div className="stat-card">
@@ -643,6 +816,37 @@ function allProjectPoints(project: SurveyProject): GeoPoint[] {
     ...project.targets.map((target) => target.position),
     ...project.layers.flatMap((layer) => (layer.visible ? layer.features.flatMap((feature) => feature.points) : []))
   ].filter((point) => Number.isFinite(point.latitude) && Number.isFinite(point.longitude));
+}
+
+function initialTargetDraft(project: SurveyProject): TargetDraft {
+  return {
+    name: nextTargetName(project),
+    code: project.codes[0]?.code || "BOD",
+    latitude: "",
+    longitude: "",
+    altitude: "0.000",
+    note: "připraveno na webu"
+  };
+}
+
+function nextTargetName(project: SurveyProject): string {
+  return `V${String(project.targets.length + 1).padStart(3, "0")}`;
+}
+
+function draftPoint(draft: TargetDraft): GeoPoint | null {
+  const latitude = Number(draft.latitude.replace(",", "."));
+  const longitude = Number(draft.longitude.replace(",", "."));
+  const altitude = Number(draft.altitude.replace(",", "."));
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  return {
+    latitude,
+    longitude,
+    altitude: Number.isFinite(altitude) ? altitude : 0
+  };
+}
+
+function countLayerPoints(layer: ProjectLayer): number {
+  return layer.features.reduce((sum, feature) => sum + feature.points.length, 0);
 }
 
 function slug(value: string): string {
