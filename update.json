@@ -1,7 +1,7 @@
 {
-  "versionCode": 54,
-  "versionName": "0.7.11",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.11.apk",
-  "notes": "JTSK X/Y se ukladaji do projektu, vytyceni pocita rozdily v EPSG:5514 CUZK Grid a web umi katastralni podklad, JTSK zadani a mazani bodu.",
+  "versionCode": 55,
+  "versionName": "0.7.12",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.12.apk",
+  "notes": "Pridan rezim Vykop: meri se dno a horni hrana, aplikace spocita hloubku a objem svahovaneho vykopu a ulozi je do exportnich atributu.",
   "required": false
 }
