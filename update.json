@@ -1,7 +1,7 @@
 {
-  "versionCode": 55,
-  "versionName": "0.7.12",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.12.apk",
-  "notes": "Pridan rezim Vykop: meri se dno a horni hrana, aplikace spocita hloubku a objem svahovaneho vykopu a ulozi je do exportnich atributu.",
+  "versionCode": 56,
+  "versionName": "0.7.13",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.13.apk",
+  "notes": "Pridan rezim Vykop: meri se dno a horni hrana, aplikace spocita hloubku a objem svahovaneho vykopu. CSV/SHP export obsahuje role, ID vykopu, plochu dna, plochu vrchu a prumernou hloubku.",
   "required": false
 }
