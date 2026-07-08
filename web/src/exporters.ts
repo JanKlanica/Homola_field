@@ -159,3 +159,160 @@ function fixed(value: number): string {
 function cleanLayer(value: string): string {
   return (value || "HOMOLA").replace(/[^\w.-]+/g, "_").slice(0, 64);
 }
+
+// ---------------------------------------------------------------------------
+// SHP ZIP, Fotky ZIP — parita s Android exportem
+// ---------------------------------------------------------------------------
+
+import JSZip from "jszip";
+import { pointPhotos } from "./types";
+import type { SurveyPoint } from "./types";
+import { writePointZShp, writeDbf, SJTSK_PRJ, type DbfField, type ShpRecord } from "./shp";
+
+export function downloadBinary(name: string, blob: Blob): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+const SHP_FIELDS: DbfField[] = [
+  { name: "NAME", type: "C", length: 40 },
+  { name: "CODE", type: "C", length: 20 },
+  { name: "SOURCE", type: "C", length: 10 },
+  { name: "Z", type: "N", length: 12, decimals: 3 },
+  { name: "ACC_CM", type: "N", length: 8, decimals: 1 },
+  { name: "QUALITY", type: "C", length: 8 },
+  { name: "DATE", type: "C", length: 20 },
+  { name: "PHOTOS", type: "N", length: 3, decimals: 0 },
+  { name: "NOTE", type: "C", length: 80 }
+];
+
+export async function projectShpZip(project: SurveyProject): Promise<Blob> {
+  const records: ShpRecord[] = [];
+  project.points.forEach((point) => {
+    const projected = projectWgsToSjtskGrid(point.position);
+    records.push({
+      x: projected.x,
+      y: projected.y,
+      z: projected.z ?? 0,
+      attrs: {
+        NAME: point.name,
+        CODE: point.code,
+        SOURCE: "MEASURED",
+        Z: projected.z ?? 0,
+        ACC_CM: point.accuracyCm,
+        QUALITY: point.rtkQuality.toUpperCase(),
+        DATE: new Date(point.recordedAt).toISOString().slice(0, 16).replace("T", " "),
+        PHOTOS: pointPhotos(point).length,
+        NOTE: point.note
+      }
+    });
+  });
+  project.targets.forEach((target) => {
+    const projected = projectWgsToSjtskGrid(target.position);
+    records.push({
+      x: projected.x,
+      y: projected.y,
+      z: projected.z ?? 0,
+      attrs: {
+        NAME: target.name,
+        CODE: target.code,
+        SOURCE: "STAKEOUT",
+        Z: projected.z ?? 0,
+        ACC_CM: 0,
+        QUALITY: "",
+        DATE: "",
+        PHOTOS: 0,
+        NOTE: target.note
+      }
+    });
+  });
+  if (records.length === 0) throw new Error("Projekt nemá žádné body k exportu.");
+
+  const base = slug(project.name);
+  const { shp, shx } = writePointZShp(records);
+  const zip = new JSZip();
+  zip.file(`${base}.shp`, shp);
+  zip.file(`${base}.shx`, shx);
+  zip.file(`${base}.dbf`, writeDbf(SHP_FIELDS, records));
+  zip.file(`${base}.prj`, SJTSK_PRJ);
+  zip.file(`${base}.cpg`, "UTF-8");
+  return zip.generateAsync({ type: "blob" });
+}
+
+export async function projectPhotosZip(
+  project: SurveyProject,
+  resolvePhotoUrl: (ref: string) => Promise<string | null>
+): Promise<Blob> {
+  const zip = new JSZip();
+  const indexRows = ["bod;kod;soubor;sjtsk_y;sjtsk_x;z;datum"];
+  let count = 0;
+
+  for (const point of project.points) {
+    const photos = pointPhotos(point);
+    for (let index = 0; index < photos.length; index += 1) {
+      const url = await resolvePhotoUrl(photos[index]);
+      if (!url) continue;
+      const blob = await fetchPhotoBlob(url);
+      if (!blob) continue;
+      const fileName = `${safeName(point.name)}_${index + 1}.jpg`;
+      zip.file(fileName, blob);
+      const projected = projectWgsToSjtskGrid(point.position);
+      indexRows.push(
+        [
+          point.name,
+          point.code,
+          fileName,
+          Math.abs(projected.x).toFixed(2),
+          Math.abs(projected.y).toFixed(2),
+          (projected.z ?? 0).toFixed(3),
+          new Date(point.recordedAt).toLocaleString("cs-CZ")
+        ].join(";")
+      );
+      count += 1;
+    }
+  }
+
+  if (count === 0) throw new Error("Projekt zatím nemá žádné fotky.");
+  zip.file("fotoindex.csv", "\ufeff" + indexRows.join("\n"));
+  return zip.generateAsync({ type: "blob" });
+}
+
+async function fetchPhotoBlob(url: string): Promise<Blob | null> {
+  try {
+    if (url.startsWith("data:")) {
+      const response = await fetch(url);
+      return await response.blob();
+    }
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    return await response.blob();
+  } catch {
+    return null;
+  }
+}
+
+export function slug(value: string): string {
+  return (
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\w-]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .toLowerCase() || "projekt"
+  );
+}
+
+function safeName(value: string): string {
+  return value.replace(/[^\w.-]+/g, "_") || "bod";
+}
+
+export function accuracyLabel(point: SurveyPoint): string {
+  const mm = Math.round(point.accuracyCm * 10);
+  const quality = point.rtkQuality === "Fix" ? "FIX" : point.rtkQuality === "Float" ? "FLT" : point.rtkQuality === "Single" ? "SGL" : "?";
+  return `${quality} ±${mm} mm`;
+}

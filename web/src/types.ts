@@ -18,6 +18,8 @@ export interface CodeDefinition {
   dxfLayer: string;
   shpCode: string;
   color: string;
+  /** Šablona názvu bodu pro tento kód, např. "V###" — mřížky nahradí pořadové číslo. */
+  nameTemplate?: string;
 }
 
 export interface SurveyPoint {
@@ -30,7 +32,33 @@ export interface SurveyPoint {
   rtkQuality: RtkQuality;
   samples: number;
   recordedAt: number;
+  /** Zpětná kompatibilita se staršími projekty (jedna fotka). */
   photoUrl?: string;
+  /** Fotky bodu — storage cesty (cloud) nebo data URL (lokální režim). */
+  photos?: string[];
+}
+
+/** Sjednocené čtení fotek bodu vč. staršího photoUrl. */
+export function pointPhotos(point: SurveyPoint): string[] {
+  const list = [...(point.photos ?? [])];
+  if (point.photoUrl && !list.includes(point.photoUrl)) list.unshift(point.photoUrl);
+  return list;
+}
+
+/** Další název bodu podle šablony kódu (V### → V352) a existujících názvů v projektu. */
+export function nextNameForCode(project: SurveyProject, code: string): string {
+  const def = project.codes.find((item) => item.code === code);
+  const template = def?.nameTemplate ?? "b###";
+  const prefix = template.replace(/#+.*$/, "");
+  const digits = (template.match(/#+/) ?? ["###"])[0].length;
+  let max = 0;
+  const all = [...project.points, ...project.targets];
+  for (const item of all) {
+    if (!item.name.startsWith(prefix)) continue;
+    const tail = item.name.slice(prefix.length).match(/^(\d+)/);
+    if (tail) max = Math.max(max, Number(tail[1]));
+  }
+  return prefix + String(max + 1).padStart(digits, "0");
 }
 
 export interface StakeoutTarget {
@@ -93,7 +121,8 @@ export const defaultCodes = (): CodeDefinition[] => [
     label: "Hranice pozemku",
     dxfLayer: "GEODET_HRANICE",
     shpCode: "HRANICE",
-    color: "#007aff"
+    color: "#007aff",
+    nameTemplate: "H###"
   },
   {
     id: crypto.randomUUID(),
@@ -101,7 +130,8 @@ export const defaultCodes = (): CodeDefinition[] => [
     label: "Plot",
     dxfLayer: "GEODET_PLOT",
     shpCode: "PLOT",
-    color: "#1f9d63"
+    color: "#1f9d63",
+    nameTemplate: "PL###"
   },
   {
     id: crypto.randomUUID(),
@@ -109,7 +139,8 @@ export const defaultCodes = (): CodeDefinition[] => [
     label: "Roh stavby",
     dxfLayer: "GEODET_ROH_STAVBY",
     shpCode: "ROH",
-    color: "#d9822b"
+    color: "#d9822b",
+    nameTemplate: "R###"
   },
   {
     id: crypto.randomUUID(),
@@ -117,7 +148,8 @@ export const defaultCodes = (): CodeDefinition[] => [
     label: "Výškový bod",
     dxfLayer: "GEODET_VYSKA",
     shpCode: "VYSKA",
-    color: "#8f5cf7"
+    color: "#8f5cf7",
+    nameTemplate: "VB###"
   }
 ];
 

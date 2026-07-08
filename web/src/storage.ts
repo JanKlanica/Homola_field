@@ -2,6 +2,7 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type { CloudRuntimeConfig } from "./cloudConfig";
 import type { SurveyProject, UserSession } from "./types";
 import { emptyProject } from "./types";
+import { blobToDataUrl, compressImage, isInlinePhoto } from "./photos";
 
 export interface ProjectStore {
   mode: "local" | "supabase";
@@ -14,6 +15,10 @@ export interface ProjectStore {
   listProjects(): Promise<SurveyProject[]>;
   saveProject(project: SurveyProject): Promise<SurveyProject>;
   deleteProject(projectId: string): Promise<void>;
+  /** Nahraje fotku bodu; vrací referenci pro uložení do point.photos (storage cesta nebo data URL). */
+  uploadPointPhoto(project: SurveyProject, pointId: string, file: File): Promise<string>;
+  /** Přeloží referenci fotky na zobrazitelné URL (signed URL v cloudu, jinak beze změny). */
+  resolvePhotoUrl(ref: string): Promise<string | null>;
 }
 
 const LOCAL_PROJECTS_KEY = "homola-field-cloud-projects";
@@ -71,12 +76,23 @@ class LocalProjectStore implements ProjectStore {
   async deleteProject(projectId: string): Promise<void> {
     writeLocalProjects(readLocalProjects().filter((project) => project.id !== projectId));
   }
+
+  async uploadPointPhoto(_project: SurveyProject, _pointId: string, file: File): Promise<string> {
+    const compressed = await compressImage(file);
+    return blobToDataUrl(compressed);
+  }
+
+  async resolvePhotoUrl(ref: string): Promise<string | null> {
+    return isInlinePhoto(ref) ? ref : null;
+  }
 }
 
 class SupabaseProjectStore implements ProjectStore {
   mode: "supabase" = "supabase";
   isCloudConfigured = true;
   setupMessage = "Přihlas se firemním účtem. Projekty se ukládají do firemního cloudu.";
+
+  private readonly photoUrlCache = new Map<string, { url: string; expires: number }>();
 
   constructor(private readonly supabase: SupabaseClient) {}
 
@@ -134,6 +150,29 @@ class SupabaseProjectStore implements ProjectStore {
     const { error } = await this.supabase.from("projects").delete().eq("id", projectId);
     if (error) throw error;
   }
+
+  async uploadPointPhoto(project: SurveyProject, pointId: string, file: File): Promise<string> {
+    const { data } = await this.supabase.auth.getSession();
+    const userId = data.session?.user?.id;
+    if (!userId) throw new Error("Nejsi přihlášený.");
+    const compressed = await compressImage(file);
+    const path = `${userId}/${project.id}/photos/${pointId}/${Date.now()}.jpg`;
+    const { error } = await this.supabase.storage
+      .from("project-files")
+      .upload(path, compressed, { contentType: "image/jpeg", upsert: false });
+    if (error) throw new Error(`Upload fotky selhal: ${error.message}`);
+    return path;
+  }
+
+  async resolvePhotoUrl(ref: string): Promise<string | null> {
+    if (isInlinePhoto(ref)) return ref;
+    const cached = this.photoUrlCache.get(ref);
+    if (cached && cached.expires > Date.now()) return cached.url;
+    const { data, error } = await this.supabase.storage.from("project-files").createSignedUrl(ref, 3600);
+    if (error || !data?.signedUrl) return null;
+    this.photoUrlCache.set(ref, { url: data.signedUrl, expires: Date.now() + 3300 * 1000 });
+    return data.signedUrl;
+  }
 }
 
 class MissingCloudStore implements ProjectStore {
@@ -165,6 +204,14 @@ class MissingCloudStore implements ProjectStore {
 
   async deleteProject(): Promise<void> {
     throw new Error(this.setupMessage);
+  }
+
+  async uploadPointPhoto(): Promise<string> {
+    throw new Error(this.setupMessage);
+  }
+
+  async resolvePhotoUrl(): Promise<string | null> {
+    return null;
   }
 }
 
