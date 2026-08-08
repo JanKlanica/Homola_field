@@ -1,7 +1,7 @@
 {
-  "versionCode": 60,
-  "versionName": "0.7.17",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.17.apk",
-  "notes": "Cloud synchronizace slucuje projekty po bodech, cilech a vrstvach. Sync uz nema mazat data jen kvuli starsi kopii, ale respektuje rucne smazane body.",
+  "versionCode": 61,
+  "versionName": "0.7.18",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.18.apk",
+  "notes": "Oprava cloud prihlaseni: aplikace si uklada refresh token a pred synchronizaci obnovi expirovane Supabase prihlaseni. Po teto aktualizaci se jednou prihlas znovu.",
   "required": false
 }
