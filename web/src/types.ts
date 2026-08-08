@@ -95,8 +95,18 @@ export interface SurveyProject {
   mapProvider?: MapProvider;
   createdAt: number;
   updatedAt: number;
+  recordSampleCount?: number;
+  constructionMode?: boolean;
+  qualityGateEnabled?: boolean;
+  maxAccuracyCm?: number;
+  maxSpreadCm?: number;
+  heightReferenceM?: number | null;
+  heightReferenceAccuracyCm?: number | null;
+  heightReferenceSpreadCm?: number | null;
+  heightReferenceSamples?: number;
   codes: CodeDefinition[];
   points: SurveyPoint[];
+  deletedPoints?: SurveyPoint[];
   targets: StakeoutTarget[];
   layers: ProjectLayer[];
 }

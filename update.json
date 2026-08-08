@@ -1,7 +1,7 @@
 {
-  "versionCode": 58,
-  "versionName": "0.7.15",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.15.apk",
-  "notes": "Pridana Vyskova kontrola: zadani referencniho Z nebo zmereni Z klinu v 5 epochach a live rozdil aktualni tycky v centimetrech.",
+  "versionCode": 59,
+  "versionName": "0.7.16",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.16.apk",
+  "notes": "Cloud synchronizace slucuje projekty po bodech, cilech a vrstvach. Sync uz nema mazat data jen kvuli starsi kopii na webu nebo v telefonu.",
   "required": false
 }

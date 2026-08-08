@@ -66,7 +66,8 @@ class LocalProjectStore implements ProjectStore {
   }
 
   async saveProject(project: SurveyProject): Promise<SurveyProject> {
-    const next = { ...project, updatedAt: Date.now() };
+    const existing = readLocalProjects().find((item) => item.id === project.id);
+    const next = mergeProjects(existing, project);
     const projects = readLocalProjects().filter((item) => item.id !== next.id);
     projects.push(next);
     writeLocalProjects(projects);
@@ -133,7 +134,14 @@ class SupabaseProjectStore implements ProjectStore {
   }
 
   async saveProject(project: SurveyProject): Promise<SurveyProject> {
-    const next = { ...project, updatedAt: Date.now() };
+    const { data: existingRows, error: selectError } = await this.supabase
+      .from("projects")
+      .select("id,name,description,coordinate_system,data,updated_at,created_at")
+      .eq("id", project.id)
+      .limit(1);
+    if (selectError) throw selectError;
+    const existing = existingRows?.[0] ? hydrateProject(existingRows[0]) : null;
+    const next = mergeProjects(existing, project);
     const { error } = await this.supabase.from("projects").upsert({
       id: next.id,
       name: next.name,
@@ -231,6 +239,89 @@ function hydrateProject(row: any): SurveyProject {
     createdAt: row.created_at ? Date.parse(row.created_at) : data.createdAt ?? Date.now(),
     updatedAt: row.updated_at ? Date.parse(row.updated_at) : data.updatedAt ?? Date.now()
   };
+}
+
+function mergeProjects(existing: SurveyProject | null | undefined, incoming: SurveyProject): SurveyProject {
+  const updatedAt = Date.now();
+  if (!existing) {
+    return { ...incoming, coordinateSystem: "EPSG:5514", updatedAt };
+  }
+  return {
+    ...existing,
+    ...incoming,
+    coordinateSystem: "EPSG:5514",
+    createdAt: Math.min(existing.createdAt ?? incoming.createdAt, incoming.createdAt ?? existing.createdAt),
+    updatedAt,
+    codes: mergeCodes(existing.codes, incoming.codes),
+    points: mergeById(existing.points, incoming.points, mergeSurveyPoint),
+    deletedPoints: mergeById(existing.deletedPoints ?? [], incoming.deletedPoints ?? [], mergeSurveyPoint),
+    targets: mergeById(existing.targets, incoming.targets),
+    layers: mergeById(existing.layers, incoming.layers, mergeLayer)
+  };
+}
+
+function mergeCodes(existing: SurveyProject["codes"] = [], incoming: SurveyProject["codes"] = []): SurveyProject["codes"] {
+  const result = new Map<string, SurveyProject["codes"][number]>();
+  for (const code of existing) {
+    result.set(code.code, normalizeCode(code));
+  }
+  for (const code of incoming) {
+    const previous = result.get(code.code);
+    result.set(code.code, normalizeCode(previous ? { ...previous, ...code, id: previous.id || code.id } : code));
+  }
+  return [...result.values()];
+}
+
+function normalizeCode(code: SurveyProject["codes"][number]): SurveyProject["codes"][number] {
+  return { ...code, id: code.id || crypto.randomUUID() };
+}
+
+function mergeById<T extends { id: string }>(
+  existing: T[] = [],
+  incoming: T[] = [],
+  merge: (existing: T, incoming: T) => T = (_existing, item) => item
+): T[] {
+  const result = new Map<string, T>();
+  for (const item of existing) result.set(item.id, item);
+  for (const item of incoming) {
+    const previous = result.get(item.id);
+    result.set(item.id, previous ? merge(previous, item) : item);
+  }
+  return [...result.values()];
+}
+
+function mergeSurveyPoint(
+  existing: SurveyProject["points"][number],
+  incoming: SurveyProject["points"][number]
+): SurveyProject["points"][number] {
+  const newer = (incoming.recordedAt ?? 0) >= (existing.recordedAt ?? 0) ? incoming : existing;
+  const photos = mergeStringArray(existing.photos, incoming.photos);
+  return {
+    ...existing,
+    ...newer,
+    photoUrl: newer.photoUrl ?? existing.photoUrl,
+    ...(photos.length ? { photos } : {})
+  };
+}
+
+function mergeLayer(
+  existing: SurveyProject["layers"][number],
+  incoming: SurveyProject["layers"][number]
+): SurveyProject["layers"][number] {
+  return {
+    ...existing,
+    ...incoming,
+    features: mergeById(existing.features, incoming.features, (oldFeature, nextFeature) => ({
+      ...oldFeature,
+      ...nextFeature,
+      points: nextFeature.points?.length ? nextFeature.points : oldFeature.points,
+      properties: { ...(oldFeature.properties ?? {}), ...(nextFeature.properties ?? {}) }
+    }))
+  };
+}
+
+function mergeStringArray(existing: string[] | undefined, incoming: string[] | undefined): string[] {
+  return [...new Set([...(existing ?? []), ...(incoming ?? [])])];
 }
 
 function readLocalProjects(): SurveyProject[] {
