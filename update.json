@@ -1,7 +1,7 @@
 {
-  "versionCode": 57,
-  "versionName": "0.7.14",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.14.apk",
+  "versionCode": 58,
+  "versionName": "0.7.15",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.15.apk",
   "notes": "Pridana Vyskova kontrola: zadani referencniho Z nebo zmereni Z klinu v 5 epochach a live rozdil aktualni tycky v centimetrech.",
   "required": false
 }
