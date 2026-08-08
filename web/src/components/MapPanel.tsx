@@ -1,7 +1,8 @@
-import { useEffect } from "react";
-import { CircleMarker, MapContainer, Marker, Polygon, Polyline, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import { useEffect, useState } from "react";
+import { CircleMarker, MapContainer, Polygon, Polyline, Popup, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import type { GeoPoint, LayerFeature, MapProvider, SurveyProject } from "../types";
+import { projectWgsToSjtskGrid } from "../geo/projection";
 
 const MAP_PROVIDERS: MapProvider[] = ["Light", "Ortho", "Cadastre"];
 const MAP_PROVIDER_LABELS: Record<MapProvider, string> = {
@@ -10,28 +11,36 @@ const MAP_PROVIDER_LABELS: Record<MapProvider, string> = {
   Cadastre: "Katastr"
 };
 
-const targetIcon = new L.DivIcon({
-  className: "hf-marker",
-  html: '<span class="hf-marker-dot"></span>',
-  iconSize: [16, 16],
-  iconAnchor: [8, 8]
-});
+const MAX_MAP_ZOOM = 22;
+const MAX_NATIVE_OSM_ZOOM = 19;
+const MAX_NATIVE_CUZK_ZOOM = 20;
+
+interface PickPreview {
+  point: GeoPoint;
+  x: number;
+  y: number;
+}
 
 export function MapPanel({
   project,
   selectedPointId,
+  selectedTargetId,
   pickActive,
   onSelectPoint,
+  onSelectTarget,
   onPick,
   onProviderChange
 }: {
   project: SurveyProject;
   selectedPointId: string | null;
+  selectedTargetId: string | null;
   pickActive: boolean;
   onSelectPoint: (id: string | null) => void;
+  onSelectTarget: (id: string | null) => void;
   onPick: (point: GeoPoint) => void;
   onProviderChange: (provider: MapProvider) => void;
 }) {
+  const [pickPreview, setPickPreview] = useState<PickPreview | null>(null);
   const allPoints = collectPoints(project);
   const center: [number, number] = allPoints.length
     ? [
@@ -46,13 +55,17 @@ export function MapPanel({
       <MapContainer
         center={center}
         zoom={allPoints.length ? 18 : 8}
+        maxZoom={MAX_MAP_ZOOM}
+        zoomSnap={0.25}
+        zoomDelta={0.5}
+        wheelPxPerZoomLevel={90}
         className={pickActive ? "project-map picking" : "project-map"}
         scrollWheelZoom
       >
         <BaseMap provider={project.mapProvider ?? "Light"} />
         <MapFit points={allPoints} projectId={project.id} />
-        <FlyToSelected point={selectedPoint?.position ?? null} />
-        <MapClickCapture enabled={pickActive} onPick={onPick} />
+        <FlyToSelected point={selectedPoint?.position ?? project.targets.find((target) => target.id === selectedTargetId)?.position ?? null} />
+        <MapPickCapture enabled={pickActive} onPick={onPick} onPreview={setPickPreview} />
 
         {project.layers
           .filter((layer) => layer.visible)
@@ -62,15 +75,33 @@ export function MapPanel({
             ))
           )}
 
-        {project.targets.map((target) => (
-          <Marker key={target.id} position={[target.position.latitude, target.position.longitude]} icon={targetIcon}>
-            <Popup>
-              <strong>{target.name}</strong>
-              <br />
-              {target.code} · cíl vytyčení
-            </Popup>
-          </Marker>
-        ))}
+        {project.targets.map((target) => {
+          const selected = target.id === selectedTargetId;
+          const projected = projectWgsToSjtskGrid(target.position);
+          return (
+            <CircleMarker
+              key={target.id}
+              center={[target.position.latitude, target.position.longitude]}
+              radius={selected ? 10 : 7}
+              pathOptions={{
+                color: selected ? "#111827" : "#147efb",
+                fillColor: "#147efb",
+                fillOpacity: 0.95,
+                weight: selected ? 3 : 2
+              }}
+              eventHandlers={{ click: () => onSelectTarget(target.id) }}
+            >
+              <Popup>
+                <strong>{target.name}</strong>
+                <br />
+                {target.code} · cíl vytyčení
+                <br />
+                Y {Math.abs(projected.x).toFixed(2)} · X {Math.abs(projected.y).toFixed(2)}
+                <br />Z {(projected.z ?? 0).toFixed(3)}
+              </Popup>
+            </CircleMarker>
+          );
+        })}
 
         {project.points.map((point) => {
           const selected = point.id === selectedPointId;
@@ -109,7 +140,18 @@ export function MapPanel({
         ))}
       </div>
 
-      {pickActive && <div className="pick-hint">Klikni do mapy — souřadnice se propíšou do nového cíle.</div>}
+      {pickActive && (
+        <>
+          <div
+            className="pick-crosshair"
+            style={pickPreview ? { left: pickPreview.x, top: pickPreview.y } : undefined}
+          />
+          <div className="pick-hint">
+            Klikni co nejpřesněji do mapy
+            {pickPreview && <span>{formatPickPreview(pickPreview.point)}</span>}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -124,11 +166,31 @@ function collectPoints(project: SurveyProject): GeoPoint[] {
   return points;
 }
 
-function MapClickCapture({ enabled, onPick }: { enabled: boolean; onPick: (point: GeoPoint) => void }) {
+function MapPickCapture({
+  enabled,
+  onPick,
+  onPreview
+}: {
+  enabled: boolean;
+  onPick: (point: GeoPoint) => void;
+  onPreview: (preview: PickPreview | null) => void;
+}) {
   useMapEvents({
+    mousemove(event) {
+      if (!enabled) return;
+      onPreview({
+        point: { latitude: event.latlng.lat, longitude: event.latlng.lng, altitude: 0 },
+        x: event.containerPoint.x,
+        y: event.containerPoint.y
+      });
+    },
+    mouseout() {
+      onPreview(null);
+    },
     click(event) {
       if (!enabled) return;
       onPick({ latitude: event.latlng.lat, longitude: event.latlng.lng, altitude: 0 });
+      onPreview(null);
     }
   });
   return null;
@@ -141,25 +203,36 @@ function BaseMap({ provider }: { provider: MapProvider }) {
         <TileLayer
           attribution="&copy; CUZK"
           url="https://ags.cuzk.cz/arcgis1/rest/services/ORTOFOTO_WM/MapServer/tile/{z}/{y}/{x}"
+          maxZoom={MAX_MAP_ZOOM}
+          maxNativeZoom={MAX_NATIVE_CUZK_ZOOM}
         />
         <TileLayer
           className="cadastre-overlay"
           attribution="&copy; CUZK"
           url="https://services.cuzk.cz/wmts/local-km-wmts-google/rest/WMTS/Yellow/KN/{z}/{y}/{x}"
           opacity={0.72}
+          maxZoom={MAX_MAP_ZOOM}
+          maxNativeZoom={MAX_NATIVE_CUZK_ZOOM}
         />
       </>
     );
   }
   return (
     <>
-      <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <TileLayer
+        attribution="&copy; OpenStreetMap"
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        maxZoom={MAX_MAP_ZOOM}
+        maxNativeZoom={MAX_NATIVE_OSM_ZOOM}
+      />
       {provider === "Cadastre" && (
         <TileLayer
           className="cadastre-overlay"
           attribution="&copy; CUZK"
           url="https://services.cuzk.cz/wmts/local-km-wmts-google/rest/WMTS/default/KN/{z}/{y}/{x}"
           opacity={0.92}
+          maxZoom={MAX_MAP_ZOOM}
+          maxNativeZoom={MAX_NATIVE_CUZK_ZOOM}
         />
       )}
     </>
@@ -184,6 +257,11 @@ function FlyToSelected({ point }: { point: GeoPoint | null }) {
     map.setView([point.latitude, point.longitude], Math.max(map.getZoom(), 18), { animate: true });
   }, [map, point]);
   return null;
+}
+
+function formatPickPreview(point: GeoPoint): string {
+  const projected = projectWgsToSjtskGrid(point);
+  return `Y ${Math.abs(projected.x).toFixed(2)} · X ${Math.abs(projected.y).toFixed(2)}`;
 }
 
 function FeatureShape({ feature, color, layerName }: { feature: LayerFeature; color: string; layerName: string }) {

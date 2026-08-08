@@ -18,6 +18,7 @@ export function App() {
   const [projects, setProjects] = useState<SurveyProject[]>([]);
   const [selectedId, setSelectedId] = useState("");
   const [selectedPointId, setSelectedPointId] = useState<string | null>(null);
+  const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
   const [pickActive, setPickActive] = useState(false);
   const [pickedPoint, setPickedPoint] = useState<GeoPoint | null>(null);
   const [railOpen, setRailOpen] = useState(false);
@@ -25,6 +26,16 @@ export function App() {
 
   const project = projects.find((item) => item.id === selectedId) ?? projects[0] ?? null;
   const selectedPoint = project?.points.find((point) => point.id === selectedPointId) ?? null;
+
+  function selectPoint(id: string | null) {
+    setSelectedPointId(id);
+    if (id) setSelectedTargetId(null);
+  }
+
+  function selectTarget(id: string | null) {
+    setSelectedTargetId(id);
+    if (id) setSelectedPointId(null);
+  }
 
   useEffect(() => {
     let active = true;
@@ -81,6 +92,7 @@ export function App() {
     setProjects(next);
     setSelectedId(next[0]?.id ?? "");
     setSelectedPointId(null);
+    setSelectedTargetId(null);
     setNotice("Projekt smazán");
   }
 
@@ -104,6 +116,7 @@ export function App() {
       point ? `Bod ${point.name} smazán` : "Bod smazán"
     );
     setSelectedPointId(null);
+    setSelectedTargetId(null);
   }
 
   if (loading || !store) {
@@ -128,6 +141,7 @@ export function App() {
         onSelectProject={(id) => {
           setSelectedId(id);
           setSelectedPointId(null);
+          setSelectedTargetId(null);
           setRailOpen(false);
         }}
         onSignOut={async () => {
@@ -147,6 +161,7 @@ export function App() {
           onSelect={(id) => {
             setSelectedId(id);
             setSelectedPointId(null);
+            setSelectedTargetId(null);
             setRailOpen(false);
           }}
           onCreate={(name, description) => saveProject(emptyProject(name, description), "Projekt založen")}
@@ -162,8 +177,10 @@ export function App() {
               <MapPanel
                 project={project}
                 selectedPointId={selectedPointId}
+                selectedTargetId={selectedTargetId}
                 pickActive={pickActive}
-                onSelectPoint={setSelectedPointId}
+                onSelectPoint={selectPoint}
+                onSelectTarget={selectTarget}
                 onPick={(point) => {
                   setPickedPoint(point);
                   setPickActive(false);
@@ -189,7 +206,9 @@ export function App() {
               store={store}
               saveProject={saveProject}
               selectedPointId={selectedPointId}
-              onSelectPoint={setSelectedPointId}
+              selectedTargetId={selectedTargetId}
+              onSelectPoint={selectPoint}
+              onSelectTarget={selectTarget}
               pickActive={pickActive}
               onTogglePick={() => setPickActive((value) => !value)}
               pickedPoint={pickedPoint}

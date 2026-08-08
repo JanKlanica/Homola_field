@@ -22,7 +22,9 @@ export function DataPanel({
   store,
   saveProject,
   selectedPointId,
+  selectedTargetId,
   onSelectPoint,
+  onSelectTarget,
   pickActive,
   onTogglePick,
   pickedPoint,
@@ -32,7 +34,9 @@ export function DataPanel({
   store: ProjectStore;
   saveProject: (project: SurveyProject, message?: string) => Promise<void>;
   selectedPointId: string | null;
+  selectedTargetId: string | null;
   onSelectPoint: (id: string | null) => void;
+  onSelectTarget: (id: string | null) => void;
   pickActive: boolean;
   onTogglePick: () => void;
   pickedPoint: GeoPoint | null;
@@ -44,7 +48,7 @@ export function DataPanel({
     <section className="data-panel">
       <div className="panel-tabs">
         <button className={tab === "body" ? "on" : ""} onClick={() => setTab("body")}>
-          Body <span>{project.points.length}</span>
+          Body <span>{project.points.length + project.targets.length}</span>
         </button>
         <button className={tab === "cile" ? "on" : ""} onClick={() => setTab("cile")}>
           Cíle <span>{project.targets.length}</span>
@@ -55,12 +59,21 @@ export function DataPanel({
       </div>
 
       {tab === "body" && (
-        <PointsTab project={project} store={store} selectedPointId={selectedPointId} onSelectPoint={onSelectPoint} />
+        <PointsTab
+          project={project}
+          store={store}
+          selectedPointId={selectedPointId}
+          selectedTargetId={selectedTargetId}
+          onSelectPoint={onSelectPoint}
+          onSelectTarget={onSelectTarget}
+        />
       )}
       {tab === "cile" && (
         <TargetsTab
           project={project}
           saveProject={saveProject}
+          selectedTargetId={selectedTargetId}
+          onSelectTarget={onSelectTarget}
           pickActive={pickActive}
           onTogglePick={onTogglePick}
           pickedPoint={pickedPoint}
@@ -77,12 +90,16 @@ function PointsTab({
   project,
   store,
   selectedPointId,
-  onSelectPoint
+  selectedTargetId,
+  onSelectPoint,
+  onSelectTarget
 }: {
   project: SurveyProject;
   store: ProjectStore;
   selectedPointId: string | null;
+  selectedTargetId: string | null;
   onSelectPoint: (id: string | null) => void;
+  onSelectTarget: (id: string | null) => void;
 }) {
   const [query, setQuery] = useState("");
   const [codeFilter, setCodeFilter] = useState("");
@@ -111,6 +128,7 @@ function PointsTab({
         </select>
       </div>
       <div className="panel-rows">
+        {rows.length > 0 && <div className="panel-section-title">Zaměřené body</div>}
         {rows.map((point) => (
           <button
             key={point.id}
@@ -125,7 +143,22 @@ function PointsTab({
             <QualityBadge point={point} />
           </button>
         ))}
-        {rows.length === 0 && <p className="muted">Žádné body — buď je pošle terén přes sync, nebo je naimportuj ve Vrstvách.</p>}
+        {project.targets.length > 0 && (
+          <>
+            <div className="panel-section-title">Cíle vytyčení</div>
+            {project.targets.map((target) => (
+              <TargetRow
+                key={target.id}
+                target={target}
+                selected={target.id === selectedTargetId}
+                onSelect={() => onSelectTarget(target.id === selectedTargetId ? null : target.id)}
+              />
+            ))}
+          </>
+        )}
+        {rows.length === 0 && project.targets.length === 0 && (
+          <p className="muted">Žádné body — buď je pošle terén přes sync, nebo je naimportuj ve Vrstvách.</p>
+        )}
       </div>
     </>
   );
@@ -145,12 +178,16 @@ interface TargetDraft {
 function TargetsTab({
   project,
   saveProject,
+  selectedTargetId,
+  onSelectTarget,
   pickActive,
   onTogglePick,
   pickedPoint
 }: {
   project: SurveyProject;
   saveProject: (project: SurveyProject, message?: string) => Promise<void>;
+  selectedTargetId: string | null;
+  onSelectTarget: (id: string | null) => void;
   pickActive: boolean;
   onTogglePick: () => void;
   pickedPoint: GeoPoint | null;
@@ -263,21 +300,72 @@ function TargetsTab({
 
       <div className="panel-rows">
         {project.targets.map((target) => (
-          <div key={target.id} className="target-row">
-            <b>{target.name}</b>
-            <small>
-              {target.code}
-              {target.note ? ` · ${target.note}` : ""}
-            </small>
-            <button className="icon-button" title="Odstranit cíl" onClick={() => removeTarget(target)}>
-              <Trash2 size={15} />
-            </button>
-          </div>
+          <TargetRow
+            key={target.id}
+            target={target}
+            selected={target.id === selectedTargetId}
+            onSelect={() => onSelectTarget(target.id === selectedTargetId ? null : target.id)}
+            onRemove={() => removeTarget(target)}
+          />
         ))}
         {project.targets.length === 0 && <p className="muted">Zatím žádné cíle vytyčení.</p>}
       </div>
     </>
   );
+}
+
+// ---------------------------------------------------------------------------
+
+function TargetRow({
+  target,
+  selected,
+  onSelect,
+  onRemove
+}: {
+  target: StakeoutTarget;
+  selected: boolean;
+  onSelect: () => void;
+  onRemove?: () => void;
+}) {
+  return (
+    <div
+      className={`target-row ${selected ? "on" : ""}`}
+      role="button"
+      tabIndex={0}
+      onClick={onSelect}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") onSelect();
+      }}
+    >
+      <span className="target-dot" />
+      <div className="target-main">
+        <b>{target.name}</b>
+        <small>
+          {target.code}
+          {target.note ? ` · ${target.note}` : ""}
+        </small>
+        <small className="target-coords">{formatTargetCoords(target)}</small>
+      </div>
+      {onRemove && (
+        <button
+          className="icon-button"
+          title="Odstranit cíl"
+          onClick={(event) => {
+            event.stopPropagation();
+            onRemove();
+          }}
+        >
+          <Trash2 size={15} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function formatTargetCoords(target: StakeoutTarget): string {
+  const projected = projectWgsToSjtskGrid(target.position);
+  if (!Number.isFinite(projected.x) || !Number.isFinite(projected.y)) return "bez souřadnic";
+  return `Y ${Math.abs(projected.x).toFixed(2)} · X ${Math.abs(projected.y).toFixed(2)} · Z ${(projected.z ?? 0).toFixed(3)}`;
 }
 
 // ---------------------------------------------------------------------------
