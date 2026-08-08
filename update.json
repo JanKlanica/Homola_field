@@ -1,7 +1,7 @@
 {
-  "versionCode": 59,
-  "versionName": "0.7.16",
-  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.16.apk",
-  "notes": "Cloud synchronizace slucuje projekty po bodech, cilech a vrstvach. Sync uz nema mazat data jen kvuli starsi kopii na webu nebo v telefonu.",
+  "versionCode": 60,
+  "versionName": "0.7.17",
+  "apkUrl": "https://janklanica.github.io/Homola_field/homola-field-0.7.17.apk",
+  "notes": "Cloud synchronizace slucuje projekty po bodech, cilech a vrstvach. Sync uz nema mazat data jen kvuli starsi kopii, ale respektuje rucne smazane body.",
   "required": false
 }

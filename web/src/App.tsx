@@ -91,6 +91,9 @@ export function App() {
       {
         ...project,
         points: project.points.filter((item) => item.id !== pointId),
+        deletedPoints: point
+          ? [point, ...(project.deletedPoints ?? []).filter((item) => item.id !== pointId)]
+          : project.deletedPoints,
         layers: project.layers.map((layer) => ({
           ...layer,
           features: layer.features.filter(

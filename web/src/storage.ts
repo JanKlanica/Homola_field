@@ -246,6 +246,8 @@ function mergeProjects(existing: SurveyProject | null | undefined, incoming: Sur
   if (!existing) {
     return { ...incoming, coordinateSystem: "EPSG:5514", updatedAt };
   }
+  const deletedPoints = mergeById(existing.deletedPoints ?? [], incoming.deletedPoints ?? [], mergeSurveyPoint);
+  const deletedPointIds = new Set(deletedPoints.map((point) => point.id));
   return {
     ...existing,
     ...incoming,
@@ -253,8 +255,8 @@ function mergeProjects(existing: SurveyProject | null | undefined, incoming: Sur
     createdAt: Math.min(existing.createdAt ?? incoming.createdAt, incoming.createdAt ?? existing.createdAt),
     updatedAt,
     codes: mergeCodes(existing.codes, incoming.codes),
-    points: mergeById(existing.points, incoming.points, mergeSurveyPoint),
-    deletedPoints: mergeById(existing.deletedPoints ?? [], incoming.deletedPoints ?? [], mergeSurveyPoint),
+    points: mergeById(existing.points, incoming.points, mergeSurveyPoint).filter((point) => !deletedPointIds.has(point.id)),
+    deletedPoints,
     targets: mergeById(existing.targets, incoming.targets),
     layers: mergeById(existing.layers, incoming.layers, mergeLayer)
   };
