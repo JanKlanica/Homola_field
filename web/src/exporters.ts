@@ -157,7 +157,7 @@ function fixed(value: number): string {
 }
 
 function cleanLayer(value: string): string {
-  return (value || "HOMOLA").replace(/[^\w.-]+/g, "_").slice(0, 64);
+  return (value || "PIPETRACK").replace(/[^\w.-]+/g, "_").slice(0, 64);
 }
 
 // ---------------------------------------------------------------------------
