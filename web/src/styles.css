@@ -1588,3 +1588,18 @@ select:focus {
 .rail-nav-item.on em {
   color: var(--brand-text);
 }
+
+
+/* Ovladač přiblížení mapy patří dolů doprava, k pravému panelu —
+   vlevo nahoře ho zakrýval plovoucí panel projektu.
+   Posunutý o kus nad okraj, aby se netloukl s popiskem Leaflet a ČÚZK. */
+.leaflet-top.leaflet-left {
+  top: auto;
+  left: auto;
+  right: 0;
+  bottom: 26px;
+}
+
+.leaflet-top.leaflet-left .leaflet-control {
+  margin: 0 12px 0 0;
+}
