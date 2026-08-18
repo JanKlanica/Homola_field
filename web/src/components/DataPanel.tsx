@@ -16,8 +16,16 @@ const ROLE_LABELS: Record<LayerRole, string> = {
 };
 
 type Tab = "body" | "cile" | "vrstvy";
+/** Sekce z nabídky vlevo se mapuje na vnitřní záložku. */
+export type PanelSection = "mereni" | "planovani" | "podklady";
+const SEKCE_NA_ZALOZKU: Record<PanelSection, Tab> = {
+  mereni: "body",
+  planovani: "cile",
+  podklady: "vrstvy"
+};
 
 export function DataPanel({
+  section,
   project,
   store,
   saveProject,
@@ -30,6 +38,7 @@ export function DataPanel({
   pickedPoint,
   onNotice
 }: {
+  section: PanelSection;
   project: SurveyProject;
   store: ProjectStore;
   saveProject: (project: SurveyProject, message?: string) => Promise<void>;
@@ -42,22 +51,12 @@ export function DataPanel({
   pickedPoint: GeoPoint | null;
   onNotice: (message: string) => void;
 }) {
-  const [tab, setTab] = useState<Tab>("body");
+  // Záložka se řídí nabídkou vlevo; vlastní přepínač už panel nemá,
+  // aby zbylo víc místa na mapu.
+  const tab = SEKCE_NA_ZALOZKU[section];
 
   return (
     <section className="data-panel">
-      <div className="panel-tabs">
-        <button className={tab === "body" ? "on" : ""} onClick={() => setTab("body")}>
-          Body <span>{project.points.length + project.targets.length}</span>
-        </button>
-        <button className={tab === "cile" ? "on" : ""} onClick={() => setTab("cile")}>
-          Plánování <span>{project.targets.length}</span>
-        </button>
-        <button className={tab === "vrstvy" ? "on" : ""} onClick={() => setTab("vrstvy")}>
-          Vrstvy <span>{project.layers.length}</span>
-        </button>
-      </div>
-
       {tab === "body" && (
         <PointsTab
           project={project}
