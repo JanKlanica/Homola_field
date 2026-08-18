@@ -51,7 +51,7 @@ export function MapPanel({
   const selectedPoint = project.points.find((point) => point.id === selectedPointId) ?? null;
 
   return (
-    <div className="map-panel">
+    <div className={pickActive ? "map-panel picking" : "map-panel"}>
       <MapContainer
         center={center}
         zoom={allPoints.length ? 18 : 8}
@@ -59,7 +59,7 @@ export function MapPanel({
         zoomSnap={0.25}
         zoomDelta={0.5}
         wheelPxPerZoomLevel={90}
-        className={pickActive ? "project-map picking leaflet-crosshair" : "project-map"}
+        className="project-map"
         scrollWheelZoom
       >
         <BaseMap provider={project.mapProvider ?? "Light"} />
