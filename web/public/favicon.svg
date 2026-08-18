@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PipeTrack Field — favikona. Jen prstenec, protože slovo Field
+     by bylo v 16 px stejně nečitelné a jen by zašpinilo tvar. -->
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <path fill="none" stroke="#c81e2c" stroke-width="80"
+        d="M 421 256.5 C 421 165.096863 346.903137 91 255.5 91 C 164.096863 91 90 165.096863 90 256.5 C 90 347.903137 164.096863 422 255.5 422 C 346.903137 422 421 347.903137 421 256.5 Z"/>
+</svg>

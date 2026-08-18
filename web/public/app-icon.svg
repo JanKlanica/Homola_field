@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Ikona aplikace: prstenec PipeTrack beze změny, pod ním slovo Field. -->
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="1024" fill="#ffffff"/>
+  <g transform="translate(512,430) scale(1.34) translate(-255.5,-256.5)">
+    <path fill="none" stroke="#c81e2c" stroke-width="80"
+          d="M 421 256.5 C 421 165.096863 346.903137 91 255.5 91 C 164.096863 91 90 165.096863 90 256.5 C 90 347.903137 164.096863 422 255.5 422 C 346.903137 422 421 347.903137 421 256.5 Z"/>
+  </g>
+  <text x="512" y="905" text-anchor="middle"
+        font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+        font-size="150" font-weight="500" fill="#c81e2c">Field</text>
+</svg>
