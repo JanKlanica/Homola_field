@@ -123,7 +123,7 @@ export function App() {
     return (
       <main className="splash">
         <span className="brand-mark large" />
-        <p>Startuji Homola Field Cloud…</p>
+        <p>Startuji PipeTrack Field…</p>
       </main>
     );
   }
