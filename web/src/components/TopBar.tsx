@@ -29,7 +29,7 @@ export function TopBar({
       </button>
       <div className="brand-row">
         <span className="brand-mark" />
-        <strong>Homola Field</strong>
+        <strong>PipeTrack Field</strong>
       </div>
 
       {project && (

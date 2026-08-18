@@ -30,7 +30,7 @@ export function AuthScreen({ store, onSignedIn }: { store: ProjectStore; onSigne
       <section className="auth-card">
         <div className="auth-brand">
           <span className="brand-mark" />
-          <span>Homola Field Cloud</span>
+          <span>PipeTrack Field</span>
         </div>
         <h1>
           Projekty, vytyčení a naměřená data <em>na jednom místě.</em>
