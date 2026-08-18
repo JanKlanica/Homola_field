@@ -1,25 +1,59 @@
 :root {
   color-scheme: light;
-  --bg: #f0f2f5;
-  --surface: #ffffff;
-  --panel: #f7f8fa;
-  --ink: #0e1319;
-  --muted: #6b7280;
-  --line: #d7dbe2;
-  --red: #e8332a;
-  --red-deep: #b81f19;
-  --fix: #15803d;
-  --fix-soft: #e7f6ec;
-  --fix-line: #bfe6cd;
-  --float: #b45309;
-  --float-soft: #fdf0dd;
-  --float-line: #f2d4a7;
-  --single: #b91c1c;
-  --single-soft: #fde6e5;
-  --shadow: 0 14px 38px rgba(14, 19, 25, 0.14);
-  --cond: "Barlow Condensed", sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, monospace;
-  font-family: "Barlow", system-ui, sans-serif;
+
+  /* ==========================================================================
+     RODINNÉ HODNOTY PIPETRACK
+     Převzato 1:1 z hlavní aplikace pipetrack.cz (Tailwind 4, oklch), aby
+     Field vypadal stejně jako zbytek rodiny. Původní názvy proměnných
+     zůstávají, jen ukazují na rodinné hodnoty — díky tomu se přebarví celá
+     aplikace naráz a nic se nerozbije.
+     ========================================================================== */
+
+  /* plochy */
+  --bg: oklch(98.5% 0.004 255);          /* pozadí aplikace */
+  --surface: oklch(100% 0 0);            /* karty a panely */
+  --panel: oklch(96.6% 0.006 255);       /* jemně odsazené plochy */
+  --hover: oklch(95% 0.008 255);
+
+  /* text a linky */
+  --ink: oklch(20% 0.004 255);
+  --muted: oklch(50% 0.01 255);
+  --line: oklch(91% 0.005 255);
+  --line-strong: oklch(83% 0.008 255);
+
+  /* ZNAČKA — červená PipeTrack, stejná jako v hlavní aplikaci a protokolech */
+  --brand: oklch(51% 0.18 25);
+  --brand-hover: oklch(47% 0.18 25);
+  --brand-soft: oklch(94% 0.04 25);
+  --brand-text: oklch(43% 0.16 25);
+  --brand-fg: oklch(99% 0.005 70);
+  /* staré názvy ukazují na značkovou červenou, ať se nemusí měnit celý soubor */
+  --red: var(--brand);
+  --red-deep: var(--brand-hover);
+
+  /* stavy měření */
+  --fix: oklch(65% 0.15 155);
+  --fix-soft: oklch(95% 0.04 155);
+  --fix-line: oklch(88% 0.06 155);
+  --float: oklch(70% 0.14 70);
+  --float-soft: oklch(96% 0.04 70);
+  --float-line: oklch(88% 0.07 70);
+  --single: oklch(62% 0.2 25);
+  --single-soft: oklch(95% 0.04 25);
+
+  --shadow: 0 1px 2px rgba(21, 22, 24, 0.04), 0 8px 24px rgba(21, 22, 24, 0.06);
+  --shadow-soft: 0 1px 2px rgba(21, 22, 24, 0.05);
+
+  /* zaoblení podle hlavní aplikace */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+
+  /* PÍSMO: hlavní aplikace používá systémové, ne Barlow. Sjednoceno. */
+  --cond: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
@@ -49,7 +83,7 @@ textarea {
 input,
 select {
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: var(--r-md);
   padding: 8px 10px;
   background: var(--surface);
 }
@@ -68,34 +102,28 @@ select:focus {
 }
 
 /* ---------- brand ---------- */
+/* Značka PipeTrack je DUTÝ PRSTENEC — stejný tvar jako favikona,
+   ikona aplikace i logo v protokolech. Dřív to byl vyplněný čtverec. */
 .brand-mark {
-  width: 22px;
-  height: 22px;
-  background: var(--red);
-  border-radius: 5px;
+  width: 24px;
+  height: 24px;
+  border: 4.5px solid var(--brand);
+  border-radius: 50%;
+  background: none;
   display: inline-block;
-  position: relative;
+  box-sizing: border-box;
   flex: 0 0 auto;
 }
 
-.brand-mark::after {
-  content: "";
-  position: absolute;
-  inset: 6px;
-  border: 2px solid #fff;
-  border-radius: 1px;
-}
+/* vnitřní čtvereček odstraněn — prstenec je celá značka */
 
 .brand-mark.large {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  border-width: 9px;
 }
 
-.brand-mark.large::after {
-  inset: 12px;
-  border-width: 3px;
-}
+
 
 /* ---------- splash / auth ---------- */
 .splash {
@@ -123,7 +151,7 @@ select:focus {
   width: min(430px, 100%);
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-lg);
   padding: 30px 30px 24px;
   box-shadow: var(--shadow);
   display: flex;
@@ -193,7 +221,7 @@ select:focus {
   background: var(--single-soft);
   color: var(--single);
   border: 1px solid #f3c3c1;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   padding: 9px 12px;
   font-size: 13px;
 }
@@ -203,7 +231,7 @@ select:focus {
   background: var(--red);
   color: #fff;
   border: none;
-  border-radius: 9px;
+  border-radius: var(--r-md);
   padding: 11px 18px;
   font-family: var(--cond);
   font-weight: 700;
@@ -221,7 +249,7 @@ select:focus {
 .ghost-button {
   background: none;
   border: 1.5px solid var(--line);
-  border-radius: 9px;
+  border-radius: var(--r-md);
   padding: 10px 16px;
   font-family: var(--cond);
   font-weight: 600;
@@ -250,7 +278,7 @@ select:focus {
   background: none;
   color: var(--muted);
   padding: 7px;
-  border-radius: 7px;
+  border-radius: var(--r-md);
   display: inline-flex;
 }
 
@@ -308,7 +336,7 @@ select:focus {
   display: none;
   border: 1px solid var(--line);
   background: var(--surface);
-  border-radius: 8px;
+  border-radius: var(--r-md);
   padding: 7px;
 }
 
@@ -317,7 +345,7 @@ select:focus {
   align-items: baseline;
   gap: 9px;
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: var(--r-md);
   padding: 4px 10px 4px 4px;
   background: var(--panel);
 }
@@ -346,7 +374,7 @@ select:focus {
   font-family: var(--mono);
   font-size: 10.5px;
   font-weight: 600;
-  border-radius: 20px;
+  border-radius: var(--r-lg);
   padding: 6px 12px;
 }
 
@@ -404,7 +432,7 @@ select:focus {
   background: var(--red);
   color: #fff;
   border: none;
-  border-radius: 9px;
+  border-radius: var(--r-md);
   padding: 9px 16px;
   font-family: var(--cond);
   font-weight: 700;
@@ -424,7 +452,7 @@ select:focus {
   width: 252px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   box-shadow: var(--shadow);
   padding: 8px;
   display: flex;
@@ -448,7 +476,7 @@ select:focus {
   align-items: baseline;
   border: none;
   background: none;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   padding: 9px 10px;
   font-family: var(--cond);
   font-weight: 600;
@@ -485,7 +513,7 @@ select:focus {
   background: var(--ink);
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   padding: 7px 11px;
   font-family: var(--cond);
   font-weight: 700;
@@ -511,10 +539,12 @@ select:focus {
 }
 
 .project-rail {
-  flex: 0 0 226px;
+  flex: 0 0 240px;
   background: var(--surface);
   border-right: 1px solid var(--line);
-  padding: 14px 12px;
+  /* dole místo navíc pro ukotvené tlačítko „Smazat projekt",
+     jinak padne přesně na tlačítko „Obnovit" */
+  padding: 16px 14px 44px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -535,7 +565,7 @@ select:focus {
   align-items: center;
   gap: 8px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--r-md);
   padding: 0 10px;
   background: var(--panel);
   color: var(--muted);
@@ -565,7 +595,7 @@ select:focus {
 .project-row {
   text-align: left;
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: var(--r-md);
   padding: 9px 11px;
   background: none;
   display: flex;
@@ -598,7 +628,7 @@ select:focus {
 
 .new-project-button {
   border: 1.5px dashed var(--line);
-  border-radius: 9px;
+  border-radius: var(--r-md);
   padding: 10px;
   background: none;
   font-family: var(--cond);
@@ -618,7 +648,7 @@ select:focus {
   flex-direction: column;
   gap: 8px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   padding: 10px;
   background: var(--panel);
 }
@@ -682,7 +712,7 @@ select:focus {
   gap: 4px;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: var(--r-md);
   padding: 4px;
   box-shadow: 0 4px 14px rgba(14, 19, 25, 0.1);
 }
@@ -690,7 +720,7 @@ select:focus {
 .map-provider-switch button {
   border: none;
   background: none;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   padding: 6px 12px;
   font-family: var(--cond);
   font-weight: 600;
@@ -712,7 +742,7 @@ select:focus {
   z-index: 1000;
   background: var(--ink);
   color: #fff;
-  border-radius: 20px;
+  border-radius: var(--r-lg);
   padding: 8px 16px;
   font-size: 12.5px;
   box-shadow: var(--shadow);
@@ -758,7 +788,7 @@ select:focus {
   width: 272px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   box-shadow: var(--shadow);
   overflow: hidden;
 }
@@ -815,7 +845,7 @@ select:focus {
   border: none;
   background: rgba(14, 19, 25, 0.65);
   color: #fff;
-  border-radius: 7px;
+  border-radius: var(--r-md);
   width: 28px;
   height: 28px;
   display: flex;
@@ -831,7 +861,7 @@ select:focus {
 
 .detail-photo-strip button {
   border: 2px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   background: none;
   padding: 0;
   line-height: 0;
@@ -888,7 +918,7 @@ select:focus {
   gap: 4px;
   font-family: var(--mono);
   font-size: 9px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -918,7 +948,7 @@ select:focus {
   font-family: var(--mono);
   font-size: 9.5px;
   font-weight: 700;
-  border-radius: 5px;
+  border-radius: var(--r-sm);
   padding: 3px 7px;
   white-space: nowrap;
 }
@@ -942,7 +972,7 @@ select:focus {
 }
 
 .photo-thumb {
-  border-radius: 7px;
+  border-radius: var(--r-md);
   border: 1px solid var(--line);
   object-fit: cover;
   flex: 0 0 auto;
@@ -1055,7 +1085,7 @@ select:focus {
   align-items: center;
   gap: 9px;
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: var(--r-md);
   padding: 7px 8px;
   background: none;
   text-align: left;
@@ -1094,7 +1124,7 @@ select:focus {
   display: flex;
   align-items: center;
   gap: 9px;
-  border-radius: 9px;
+  border-radius: var(--r-md);
   padding: 8px 8px 8px 12px;
   border: 1px solid transparent;
   cursor: pointer;
@@ -1171,7 +1201,7 @@ select:focus {
   gap: 4px;
   font-family: var(--mono);
   font-size: 9px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--muted);
 }
@@ -1206,7 +1236,7 @@ select:focus {
   display: flex;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--r-md);
   padding: 3px;
   gap: 3px;
 }
@@ -1215,7 +1245,7 @@ select:focus {
   flex: 1;
   border: none;
   background: none;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   padding: 6px 4px;
   font-family: var(--cond);
   font-weight: 600;
@@ -1246,14 +1276,14 @@ select:focus {
   height: 34px;
   padding: 3px;
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: var(--r-md);
   background: var(--surface);
 }
 
 .file-button {
   background: var(--ink);
   color: #fff;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   padding: 8px 13px;
   font-family: var(--cond);
   font-weight: 700;
@@ -1270,7 +1300,7 @@ select:focus {
   align-items: center;
   gap: 8px;
   padding: 8px;
-  border-radius: 9px;
+  border-radius: var(--r-md);
 }
 
 .layer-row:hover {
@@ -1282,7 +1312,7 @@ select:focus {
   height: 26px;
   padding: 2px;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
 }
 
 .layer-main {
@@ -1359,7 +1389,7 @@ select:focus {
   transform: translateX(-50%);
   background: var(--ink);
   color: #fff;
-  border-radius: 22px;
+  border-radius: var(--r-lg);
   padding: 10px 20px;
   font-size: 13.5px;
   box-shadow: var(--shadow);
