@@ -5,17 +5,13 @@ import { ExportMenu, type ExportMenuProps } from "./ExportMenu";
 
 export function TopBar({
   session,
-  projects,
   project,
-  onSelectProject,
   onSignOut,
   onToggleRail,
   exportProps
 }: {
   session: UserSession;
-  projects: SurveyProject[];
   project: SurveyProject | null;
-  onSelectProject: (id: string) => void;
   onSignOut: () => void;
   onToggleRail: () => void;
   exportProps: ExportMenuProps | null;
@@ -32,20 +28,8 @@ export function TopBar({
         <strong>PipeTrack Field</strong>
       </div>
 
-      {project && (
-        <div className="project-switch">
-          <select value={project.id} onChange={(event) => onSelectProject(event.currentTarget.value)}>
-            {projects.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-          <small>
-            {project.points.length} bodů · EPSG:5514
-          </small>
-        </div>
-      )}
+      {/* Přepínač projektu se přesunul do nabídky vlevo, pod značku —
+          v hlavičce zbylo místo pro stav a export. */}
 
       {project && (
         <span className={`sync-pill ${session.cloud ? "cloud" : "local"}`}>
