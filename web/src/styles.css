@@ -1475,3 +1475,105 @@ select:focus {
     display: none;
   }
 }
+
+
+/* ==========================================================================
+   NABÍDKA V POSTRANNÍM PANELU
+   Přepínač projektu (dřív v hlavičce) a sekce, které řídí pravý panel.
+   Seznam projektů je schovaný pod přepínačem, aby nabídka nezabírala místo
+   a na mapu zbylo víc prostoru.
+   ========================================================================== */
+
+.project-switch-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--panel);
+  text-align: left;
+  cursor: pointer;
+}
+
+.project-switch-button:hover {
+  background: var(--hover);
+}
+
+.project-switch-button span {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.project-switch-button strong {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-switch-button small {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.project-switch-button svg {
+  color: var(--muted);
+  flex: 0 0 auto;
+  transition: transform 0.15s ease;
+}
+
+.project-switch-button svg.flip {
+  transform: rotate(180deg);
+}
+
+.rail-nav {
+  display: grid;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.rail-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  background: none;
+  text-align: left;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.rail-nav-item:hover {
+  background: var(--panel);
+}
+
+.rail-nav-item.on {
+  background: var(--brand-soft);
+  border-color: transparent;
+  color: var(--brand-text);
+  font-weight: 600;
+}
+
+.rail-nav-item em {
+  font-family: var(--mono);
+  font-style: normal;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.rail-nav-item.on em {
+  color: var(--brand-text);
+}
