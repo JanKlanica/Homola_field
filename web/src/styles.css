@@ -1603,3 +1603,25 @@ select:focus {
 .leaflet-top.leaflet-left .leaflet-control {
   margin: 0 12px 0 0;
 }
+
+
+/* V režimu klikání do mapy musí být kříž, ne ruka. Leaflet dává na plátno
+   `cursor: grab` a při tažení `grabbing`; obojí je potřeba přebít, jinak
+   se nad zaměřovacím křížem objevuje ručička. */
+.project-map.picking,
+.project-map.picking .leaflet-container,
+.project-map.picking .leaflet-grab,
+.project-map.picking .leaflet-interactive {
+  cursor: crosshair;
+}
+
+.project-map.picking .leaflet-container:active,
+.project-map.picking .leaflet-grab:active {
+  cursor: crosshair;
+}
+
+/* Kříž ani nápověda nesmí klik pohltit, jinak by se do mapy netrefilo. */
+.pick-crosshair,
+.pick-hint {
+  pointer-events: none;
+}
