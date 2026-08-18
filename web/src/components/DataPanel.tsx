@@ -51,7 +51,7 @@ export function DataPanel({
           Body <span>{project.points.length + project.targets.length}</span>
         </button>
         <button className={tab === "cile" ? "on" : ""} onClick={() => setTab("cile")}>
-          Cíle <span>{project.targets.length}</span>
+          Plánování <span>{project.targets.length}</span>
         </button>
         <button className={tab === "vrstvy" ? "on" : ""} onClick={() => setTab("vrstvy")}>
           Vrstvy <span>{project.layers.length}</span>
