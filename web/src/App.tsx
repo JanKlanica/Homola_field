@@ -6,7 +6,7 @@ import { loadCloudConfig } from "./cloudConfig";
 import { createProjectStore, type ProjectStore } from "./storage";
 import { AuthScreen } from "./components/AuthScreen";
 import { TopBar } from "./components/TopBar";
-import { ProjectRail } from "./components/ProjectRail";
+import { ProjectRail, type Section } from "./components/ProjectRail";
 import { MapPanel } from "./components/MapPanel";
 import { PointDetail } from "./components/PointDetail";
 import { DataPanel } from "./components/DataPanel";
@@ -22,6 +22,8 @@ export function App() {
   const [pickActive, setPickActive] = useState(false);
   const [pickedPoint, setPickedPoint] = useState<GeoPoint | null>(null);
   const [railOpen, setRailOpen] = useState(false);
+  // kterou sekci ukazuje pravý panel; řídí ji nabídka vlevo
+  const [section, setSection] = useState<Section>("mereni");
   const [notice, setNotice] = useState("");
 
   const project = projects.find((item) => item.id === selectedId) ?? projects[0] ?? null;
@@ -136,14 +138,7 @@ export function App() {
     <div className="app-shell">
       <TopBar
         session={session}
-        projects={projects}
         project={project}
-        onSelectProject={(id) => {
-          setSelectedId(id);
-          setSelectedPointId(null);
-          setSelectedTargetId(null);
-          setRailOpen(false);
-        }}
         onSignOut={async () => {
           await store.signOut();
           setSession(null);
@@ -158,6 +153,8 @@ export function App() {
           projects={projects}
           selectedId={project?.id ?? ""}
           open={railOpen}
+          section={section}
+          onSection={setSection}
           onSelect={(id) => {
             setSelectedId(id);
             setSelectedPointId(null);
@@ -202,6 +199,7 @@ export function App() {
             </div>
 
             <DataPanel
+              section={section}
               project={project}
               store={store}
               saveProject={saveProject}
