@@ -3,7 +3,7 @@ import { pointPhotos } from "./types";
 import { projectWgsToSjtskGrid } from "./geo/projection";
 
 /**
- * Fotoprotokol: otevře tiskové okno s hlavičkou HOMOLA, tabulkou bodů a snímky.
+ * Fotoprotokol: otevře tiskové okno s hlavičkou PipeTrack, tabulkou bodů a snímky.
  * Tisk do PDF řeší prohlížeč — bez problémů s českou diakritikou ve fontech.
  */
 export async function openPhotoProtocol(
@@ -69,8 +69,10 @@ function protocolHtml(project: SurveyProject, codeFilter: string, count: number,
   header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #e8332a; padding-bottom: 12px; margin-bottom: 18px; }
   header h1 { font-size: 20px; margin: 0 0 4px; text-transform: uppercase; letter-spacing: .04em; }
   header p { margin: 0; color: #555; }
-  .brand { text-align: right; font-weight: 700; font-size: 18px; }
-  .brand span { display: block; font-weight: 400; font-size: 11px; color: #777; }
+  .brand { text-align: right; font-size: 18px; color: #1a1a1a; }
+  .brand b { font-weight: 700; }
+  .brand i { font-style: normal; font-weight: 400; color: #c81e2c; }
+  .brand span { display: block; font-weight: 400; font-size: 11px; color: #8a9099; margin-top: 2px; }
   .point { break-inside: avoid; border: 1px solid #d5d9df; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; }
   table.meta { width: 100%; border-collapse: collapse; }
   table.meta td { font-size: 10px; color: #666; padding-right: 14px; vertical-align: top; }
@@ -91,11 +93,11 @@ function protocolHtml(project: SurveyProject, codeFilter: string, count: number,
       <p>Zakázka: <b>${escapeHtml(project.name)}</b>${project.description ? " · " + escapeHtml(project.description) : ""}</p>
       <p>Souřadnicový systém S-JTSK (EPSG:5514, ČÚZK grid) · výšky Bpv · bodů: ${count}</p>
     </div>
-    <div class="brand">HOMOLA a.s.<span>Homola Field · ${today}</span></div>
+    <div class="brand"><b>PipeTrack</b> <i>Field</i><span>${today}</span></div>
   </header>
   ${body}
   <footer>
-    <span>Vygenerováno aplikací Homola Field Cloud</span>
+    <span>Vygenerováno aplikací PipeTrack Field</span>
     <span>Zpracoval: ______________________ Podpis: ______________________</span>
   </footer>
 </body>
