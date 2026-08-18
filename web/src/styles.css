@@ -171,14 +171,14 @@ select:focus {
   gap: 10px;
   font-family: var(--cond);
   font-weight: 700;
-  font-size: 19px;
+  font-size: 14.5px;
   letter-spacing: 0.02em;
 }
 
 .auth-card h1 {
   font-family: var(--cond);
   font-weight: 700;
-  font-size: 33px;
+  font-size: 24px;
   line-height: 1.06;
   margin: 4px 0 0;
   letter-spacing: 0.01em;
@@ -241,7 +241,7 @@ select:focus {
   padding: 11px 18px;
   font-family: var(--cond);
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14.5px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   box-shadow: 0 6px 16px rgba(232, 51, 42, 0.28);
@@ -259,7 +259,7 @@ select:focus {
   padding: 10px 16px;
   font-family: var(--cond);
   font-weight: 600;
-  font-size: 15px;
+  font-size: 13.5px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   display: inline-flex;
@@ -334,7 +334,7 @@ select:focus {
   gap: 9px;
   font-family: var(--cond);
   font-weight: 700;
-  font-size: 19px;
+  font-size: 14.5px;
   letter-spacing: 0.02em;
 }
 
@@ -361,7 +361,7 @@ select:focus {
   background: none;
   font-family: var(--cond);
   font-weight: 700;
-  font-size: 17px;
+  font-size: 13.5px;
   padding: 5px 4px;
   max-width: 250px;
 }
@@ -442,7 +442,7 @@ select:focus {
   padding: 9px 16px;
   font-family: var(--cond);
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   display: inline-flex;
@@ -486,7 +486,7 @@ select:focus {
   padding: 9px 10px;
   font-family: var(--cond);
   font-weight: 600;
-  font-size: 15px;
+  font-size: 13.5px;
   letter-spacing: 0.02em;
   text-align: left;
 }
@@ -544,13 +544,18 @@ select:focus {
   position: relative;
 }
 
+/* Postranní panel je PLOVOUCÍ KARTA, stejně jako v hlavní aplikaci
+   pipetrack.cz — bílá plocha se zaoblením a jemným stínem, odsazená
+   od okrajů, ne sloupec přilepený k hraně. */
 .project-rail {
-  flex: 0 0 240px;
+  flex: 0 0 244px;
   background: var(--surface);
-  border-right: 1px solid var(--line);
-  /* dole místo navíc pro ukotvené tlačítko „Smazat projekt",
-     jinak padne přesně na tlačítko „Obnovit" */
-  padding: 16px 14px 44px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-soft);
+  margin: 10px 0 10px 10px;
+  /* dole místo pro ukotvené tlačítko „Smazat projekt" */
+  padding: 14px 12px 40px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -612,7 +617,7 @@ select:focus {
 .project-row strong {
   font-family: var(--cond);
   font-weight: 600;
-  font-size: 15.5px;
+  font-size: 14px;
   letter-spacing: 0.02em;
 }
 
@@ -890,7 +895,7 @@ select:focus {
 .detail-name {
   font-family: var(--cond);
   font-weight: 700;
-  font-size: 21px;
+  font-size: 13.5px;
   border: none;
   background: none;
   padding: 2px 0;
@@ -1028,7 +1033,7 @@ select:focus {
   padding: 13px 4px 11px;
   font-family: var(--cond);
   font-weight: 600;
-  font-size: 15.5px;
+  font-size: 14px;
   letter-spacing: 0.03em;
   color: var(--muted);
   border-bottom: 2.5px solid transparent;
@@ -1155,23 +1160,29 @@ select:focus {
   flex: 0 0 auto;
 }
 
+/* Cíl se skládá stejně jako bod: název v PEVNÉ buňce, aby se kódy
+   pod sebou srovnaly do sloupce. Dřív byly název a kód pod sebou
+   v mřížce, takže se nic nezarovnalo. */
 .target-main {
   min-width: 0;
   flex: 1;
-  display: grid;
-  gap: 2px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
 }
 
 .target-row b {
   font-family: var(--mono);
   font-size: 12.5px;
   font-weight: 600;
-  min-width: 0;
+  flex: 0 0 58px;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .target-row small {
+  flex: 1;
   font-family: var(--mono);
   font-size: 9.5px;
   color: var(--muted);
@@ -1234,7 +1245,7 @@ select:focus {
   gap: 8px;
   font-family: var(--cond);
   font-weight: 600;
-  font-size: 15px;
+  font-size: 13.5px;
   letter-spacing: 0.02em;
 }
 
@@ -1365,7 +1376,7 @@ select:focus {
 .empty-workspace h1 {
   font-family: var(--cond);
   font-weight: 700;
-  font-size: 30px;
+  font-size: 22px;
   color: var(--ink);
   margin: 0;
 }
