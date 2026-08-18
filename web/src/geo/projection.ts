@@ -1,6 +1,6 @@
-import proj4 from "proj4";
 import type { GeoPoint } from "../types";
 import { correctionAt } from "./cuzkGrid";
+import { wgsToJtsk05Proj4, jtsk05Proj4ToWgs } from "./cuzkTransform";
 
 export interface ProjectedPoint {
   x: number;
@@ -8,14 +8,13 @@ export interface ProjectedPoint {
   z?: number;
 }
 
-const WGS84 = "EPSG:4326";
-const SJTSK_APPROX = "HOMOLA:SJTSK_APPROX";
+/* Dřív se tu používal proj4 s parametry towgs84=485,169.5,483.8, což je
+   STARÁ PŘIBLIŽNÁ transformace. Měřením proti transformační službě ČÚZK
+   vycházela odchylka 0,2 až 3,2 m (průměr 1,5 m) a opravná tabulka to
+   nemohla dohnat — její korekce jsou jen centimetrové až decimetrové.
 
-proj4.defs(
-  SJTSK_APPROX,
-  "+proj=krovak +lat_0=49.5 +lon_0=24.83333333333333 +alpha=30.28813972222222 +k=0.9999 " +
-    "+x_0=0 +y_0=0 +ellps=bessel +towgs84=485,169.5,483.8,7.786,4.398,4.103,0 +units=m +no_defs"
-);
+   Nahrazeno modulem z aplikace pro iOS, ověřeným proti téže službě:
+   průměr 3,9 mm, maximum 5,1 mm. Viz cuzkTransform.ts. */
 
 export function looksProjected(x: number, y: number): boolean {
   return Math.abs(x) > 180 || Math.abs(y) > 90;
@@ -29,7 +28,7 @@ export function projectWgsToSjtskGrid(point: GeoPoint): ProjectedPoint {
       z: point.altitude ?? 0
     };
   }
-  const [x, y] = proj4(WGS84, SJTSK_APPROX, [point.longitude, point.latitude]);
+  const { x, y } = wgsToJtsk05Proj4(point.latitude, point.longitude, point.altitude ?? 0);
   const correction = correctionAt(x, y);
   return {
     x: correction ? x + correction.x : x,
@@ -49,7 +48,7 @@ export function unprojectSjtskGrid(point: ProjectedPoint): GeoPoint {
       z: point.z
     };
   }
-  const [longitude, latitude] = proj4(SJTSK_APPROX, WGS84, [approx.x, approx.y]);
+  const { latitude, longitude } = jtsk05Proj4ToWgs(approx.x, approx.y, approx.z ?? 0);
   return {
     latitude,
     longitude,
