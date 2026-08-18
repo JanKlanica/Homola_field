@@ -548,12 +548,20 @@ select:focus {
    pipetrack.cz — bílá plocha se zaoblením a jemným stínem, odsazená
    od okrajů, ne sloupec přilepený k hraně. */
 .project-rail {
-  flex: 0 0 244px;
+  /* Panel PLAVE nad mapou, ne vedle ní — mapa pod ním pokračuje,
+     takže to vypadá jako karta položená na fotku. */
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  bottom: 10px;
+  width: 244px;
+  z-index: 500;
+  overflow-y: auto;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  box-shadow: var(--shadow-soft);
-  margin: 10px 0 10px 10px;
+  box-shadow: var(--shadow);
+  margin: 0;
   /* dole místo pro ukotvené tlačítko „Smazat projekt" */
   padding: 14px 12px 40px;
   display: flex;
@@ -686,6 +694,7 @@ select:focus {
   display: flex;
   min-width: 0;
   min-height: 0;
+  /* mapa začíná pod plovoucím panelem, proto žádné odsazení zleva */
 }
 
 .map-column {
@@ -717,7 +726,9 @@ select:focus {
 .map-provider-switch {
   position: absolute;
   top: 12px;
-  left: 12px;
+  /* odsazeno o šířku plovoucího panelu (244 + 10 okraj + 22 mezera),
+     jinak by se pod ním schoval */
+  left: 276px;
   z-index: 1000;
   display: flex;
   gap: 4px;
