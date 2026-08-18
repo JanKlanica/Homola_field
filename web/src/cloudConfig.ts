@@ -11,7 +11,7 @@ export async function loadCloudConfig(): Promise<CloudRuntimeConfig> {
   const envConfig: CloudRuntimeConfig = {
     supabaseUrl: clean(ENV_SUPABASE_URL),
     supabaseAnonKey: clean(ENV_SUPABASE_ANON_KEY),
-    appName: "Homola Field"
+    appName: "PipeTrack Field"
   };
 
   const runtimeConfig = await loadRuntimeConfig();
