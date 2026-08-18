@@ -59,7 +59,7 @@ export function MapPanel({
         zoomSnap={0.25}
         zoomDelta={0.5}
         wheelPxPerZoomLevel={90}
-        className={pickActive ? "project-map picking" : "project-map"}
+        className={pickActive ? "project-map picking leaflet-crosshair" : "project-map"}
         scrollWheelZoom
       >
         <BaseMap provider={project.mapProvider ?? "Light"} />
