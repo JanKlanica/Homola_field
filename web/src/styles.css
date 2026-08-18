@@ -1631,9 +1631,10 @@ select:focus {
    Leaflet má na tažení pravidlo `.leaflet-dragging .leaflet-grab` se stejnou
    silou jako naše, takže by při stisknutém tlačítku ručička vyhrála pořadím.
    Tady je to natvrdo — v režimu klikání má být kříž vždycky. */
-.project-map.picking,
-.project-map.picking *,
-.leaflet-dragging .project-map.picking,
-.leaflet-dragging .project-map.picking * {
+/* Třída je na OBALUJÍCÍM divu, ne na mapě samotné — MapContainer
+   z react-leaflet si className bere jen při prvním vykreslení, takže
+   přepínání přímo na něm se do DOM nikdy nedostalo. */
+.map-panel.picking,
+.map-panel.picking * {
   cursor: crosshair !important;
 }
